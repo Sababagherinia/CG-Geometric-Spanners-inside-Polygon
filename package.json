@@ -1,0 +1,24 @@
+{
+  "name": "cg-geometric-spanners-inside-polygon",
+  "version": "1.0.0",
+  "description": "This repository was created for the Computational Geometry course project.\r We are gonna implement an algorithm to compute **the geometric spanners for points inside a polygonal domain**.\r This project uses **Typescript** for the core implementation and JavaScript's **p5.js** library for visualization and interactive environment.",
+  "main": "sketch.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sababagherinia/CG-Geometric-Spanners-inside-Polygon.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Sababagherinia/CG-Geometric-Spanners-inside-Polygon/issues"
+  },
+  "homepage": "https://github.com/Sababagherinia/CG-Geometric-Spanners-inside-Polygon#readme",
+  "devDependencies": {
+    "@types/p5": "^1.7.6",
+    "typescript": "^5.9.3"
+  }
+}

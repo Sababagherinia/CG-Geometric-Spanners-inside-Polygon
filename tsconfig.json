@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    /* File structure */
+    "rootDir": "./src",
+    "outDir": "./dist",
+
+    /* Compilation target */
+    "target": "es6",
+    "module": "none", 
+
+    /* Browser environment */
+    "lib": ["es6", "dom"],
+    "types": ["p5"],
+
+    /* Type safety */
+    "strict": true,
+    "noImplicitAny": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+
+    /* Misc */
+    "sourceMap": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*"]
+}
