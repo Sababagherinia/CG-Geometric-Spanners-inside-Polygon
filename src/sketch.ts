@@ -9,7 +9,7 @@ class Points{
   }
 }
 
-var points: Point[] = [];
+var points: Points[] = [];
 var button: any;
 
 function setup() {
@@ -34,7 +34,7 @@ function draw() {
 
 function mousePressed() {
   if (mouseX >= 0 && mouseX <= width && mouseY >= 0 && mouseY <= height) {
-    points.push(new Point(mouseX, mouseY));
+    points.push(new Points(mouseX, mouseY));
   }
 }
 
