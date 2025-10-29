@@ -1,5 +1,5 @@
 /// <reference types="p5/global" />
-class Point{
+class Points{
   x: number;
   y: number;
   

@@ -47,3 +47,5 @@ class Polygon {
         }
     }
 }
+
+export { Point, Segment, Graph, Polygon };
