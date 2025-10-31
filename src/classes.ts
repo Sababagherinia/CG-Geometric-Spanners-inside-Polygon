@@ -17,10 +17,6 @@ class Segment {
         this.src = src;
         this.dest = dest;
     }
-
-    onSegment(p: Point): Boolean {
-        return false;
-    }
 }
 
 class Graph {

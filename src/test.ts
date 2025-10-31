@@ -1,22 +1,12 @@
 import { minimumEnclosingDisc, enclosingDiscRadius } from "./enclosing_disc";
-// import { Point } from "./classes";
+import { Point } from "./classes";
 
 const Points = [
-  { x: -1, y: -1 },
-  { x: 1, y: -1 },
-  { x: -1, y: 1 },
-  { x: 1, y: 1 },
-  { x: 0, y: 0 },
-  { x: 0.5, y: 0.5 },
-  { x: 0.5, y: -0.5 },
-  { x: -0.5, y: 0.5 },
-  { x: -0.5, y: -0.5 },
-  { x: 0.2, y: 0.3 },
-  { x: -0.2, y: -0.3},
-  { x: 0.3, y: -0.2 },
-  { x: -0.3, y: 0.2 },
-  { x: 1.5, y: 1 },
-  { x: 1.5, y: -1.8 },
+  new Point(0, 0),
+  new Point(1, 0),
+  new Point(0, 1),
+  new Point(1, 1),
+  new Point(0.5, 0.5)
 ];
 
 const circle = minimumEnclosingDisc(Points);
