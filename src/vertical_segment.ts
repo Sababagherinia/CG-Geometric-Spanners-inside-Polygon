@@ -14,13 +14,13 @@ function split(polygon: Polygon, src: number, dest: number): Polygon[] {
     let start: number = src;
     let end: number = dest;
 
-    let left_points: Point[] = wrapAroundSlice(polygon.points, start, end);
-    let left_segs: Segment[] = wrapAroundSlice(polygon.segments, start, end - 1);
-    left_segs.push(new Segment(polygon.points[end], polygon.points[start]));
+    let right_points: Point[] = wrapAroundSlice(polygon.points, start, end);
+    let right_segs: Segment[] = wrapAroundSlice(polygon.segments, start, end - 1);
+    right_segs.push(new Segment(polygon.points[end], polygon.points[start]));
 
-    let right_points = wrapAroundSlice(polygon.points, end, start);
-    let right_segs: Segment[] = wrapAroundSlice(polygon.segments, end, start - 1);
-    right_segs.push(new Segment(polygon.points[start], polygon.points[end]));
+    let left_points = wrapAroundSlice(polygon.points, end, start);
+    let left_segs: Segment[] = wrapAroundSlice(polygon.segments, end, start - 1);
+    left_segs.push(new Segment(polygon.points[start], polygon.points[end]));
 
     return [
       new Polygon(left_points, left_segs),
@@ -75,47 +75,29 @@ function findEar(polygon: Polygon): Polygon[] {
  * @param triangles accumulator polygon array
  * @returns list of triangles that encompass the triangulation
  */
-function triangulate(polygon: Polygon): DualTree {
-  let dt: DualTree = new DualTree();
-
+function triangulate(polygon: Polygon, dt: DualTree) {
   // if polygon is a triangle simply add it to the dual tree and terminate
   if (polygon.size() === 3) {
     let dn: DualNode = new DualNode(polygon,[]);
     dt.insert(dn);
-    return dt;
   }
 
-  // initialize the polygon queue
-  let polyq: Queue<Polygon> = new Queue<Polygon>();
-  polyq.enqueue(polygon);
+  let polys: Polygon[] = findEar(polygon);
+  let leftPoly: Polygon = polys[0];
+  let rightPoly: Polygon = polys[1];
 
-  while(polyq.size() !== 0) {
-    let poly: Polygon | undefined = polyq.dequeue();
-    if (poly === undefined)
-      break;
-
-    let polys: Polygon[] = findEar(poly);
-    let poly1: Polygon = polys[0];
-    let poly2: Polygon = polys[1];
-
-    // if ear produces two non-trianglular polygons you in turn triangulate them and add their dt trees to the original tree
-    if (poly1.size() !== 3 && poly2.size() !== 3) {
-      let dt1 = triangulate(poly1);
-      let dt2 = triangulate(poly2);
-      dt.join(dt1);
-      dt.join(dt2);
-    } else if (poly1.size() === 3) {
-      let dn: DualNode = new DualNode(poly1,[]);
-      dt.insert(dn);
-      polyq.enqueue(poly2);
-    } else {
-      let dn: DualNode = new DualNode(poly1,[]);
-      dt.insert(dn);
-      polyq.enqueue(poly1);
-    }
+  if (leftPoly.size() > 3 && rightPoly.size() > 3) {
+    let leftDt: DualTree = new DualTree();
+    let rightDt: DualTree = new DualTree();
+    triangulate(leftPoly, leftDt);
+    triangulate(rightPoly, rightDt);
+    dt.join(leftDt);
+    dt.join(rightDt);
+    return;
   }
 
-  return dt;
+  triangulate(leftPoly, dt);
+  triangulate(rightPoly, dt);
 }
 
 /**
