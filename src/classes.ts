@@ -29,6 +29,7 @@ class Graph {
     }
 }
 
+// vertices have to be given in clockwise order
 class Polygon {
     points: Point[];
     segments: Segment[] = [];
@@ -112,6 +113,12 @@ class DualTree {
 
         if (dt.root === undefined)
             return;
+
+        if (this.root === undefined) {
+            this.root = dt.root;
+            return;
+        }
+
         this.curr?.childen.push(dt.root);
     }
 
