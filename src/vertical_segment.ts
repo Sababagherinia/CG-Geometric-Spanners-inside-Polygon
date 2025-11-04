@@ -75,23 +75,20 @@ function findEar(polygon: Polygon): Polygon[] {
  * @param triangles accumulator polygon array
  * @returns list of triangles that encompass the triangulation
  */
-function triangulate(polygon: Polygon) {
-  let triangles: Polygon[] = [];
+function triangulate(polygon: Polygon): DualTree {
   let dt: DualTree = new DualTree();
 
   // if polygon is a triangle simply add it to the dual tree and terminate
   if (polygon.size() === 3) {
-    triangles.push(polygon);
     let dn: DualNode = new DualNode(polygon,[]);
     dt.insert(dn);
-    return [triangles,dt];
+    return dt;
   }
 
   // initialize the polygon queue
   let polyq: Queue<Polygon> = new Queue<Polygon>();
   polyq.enqueue(polygon);
 
-  let current: DualNode | undefined = dt.curr;
   while(polyq.size() !== 0) {
     let poly: Polygon | undefined = polyq.dequeue();
     if (poly === undefined)
@@ -101,21 +98,24 @@ function triangulate(polygon: Polygon) {
     let poly1: Polygon = polys[0];
     let poly2: Polygon = polys[1];
 
-    // TODO - fix this
+    // if ear produces two non-trianglular polygons you in turn triangulate them and add their dt trees to the original tree
     if (poly1.size() !== 3 && poly2.size() !== 3) {
-      current = dt.curr; 
-      polyq.enqueue(poly1);
-      polyq.enqueue(poly2);
+      let dt1 = triangulate(poly1);
+      let dt2 = triangulate(poly2);
+      dt.join(dt1);
+      dt.join(dt2);
     } else if (poly1.size() === 3) {
       let dn: DualNode = new DualNode(poly1,[]);
       dt.insert(dn);
+      polyq.enqueue(poly2);
     } else {
       let dn: DualNode = new DualNode(poly1,[]);
       dt.insert(dn);
+      polyq.enqueue(poly1);
     }
   }
 
-  return [triangles, dt];
+  return dt;
 }
 
 /**

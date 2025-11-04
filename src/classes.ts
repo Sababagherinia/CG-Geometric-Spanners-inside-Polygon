@@ -86,23 +86,41 @@ class DualNode {
 class DualTree {
     root: DualNode | undefined;
     curr: DualNode | undefined;
+    triangles: Polygon[] | undefined;
     constructor(root?: DualNode) {
         this.root = root;
         this.curr = root;
+        this.triangles = undefined;
     }
 
     insert(n: DualNode) {
         if (this.root === undefined || this.root === null) {
             this.root = n;
             this.curr = n;
+            this.triangles?.push(n.poly);
             return;
         }
 
         this.curr?.childen.push(n);
     }
 
+    join(dt: DualTree) {
+        let ts: Polygon[] | undefined = dt.getTriangles;
+        if (ts === undefined)
+            return;
+        this.triangles = this.triangles?.concat(ts);
+
+        if (dt.root === undefined)
+            return;
+        this.curr?.childen.push(dt.root);
+    }
+
     delete(n: DualNode) {
         return;
+    }
+
+    get getTriangles(): Polygon[] | undefined {
+        return this.triangles;
     }
 }
 
