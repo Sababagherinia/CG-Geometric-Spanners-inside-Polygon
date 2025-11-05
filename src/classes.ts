@@ -73,62 +73,31 @@ class Queue<T> {
 
 class DualNode {
     poly: Polygon;
-    // diag: Segment;
-    parent?: DualNode;
-    childen: DualNode[];
-    constructor(poly: Polygon, children: DualNode[], parent?: DualNode) {
+    parent: DualNode | null;
+    leftChild: DualNode | null;
+    rightChild: DualNode | null;
+    constructor(poly: Polygon) {
         this.poly = poly;
-        // this.diag = diag;
-        this.parent = parent;
-        this.childen = children;
+        this.parent = null;
+        this.leftChild = null;
+        this.rightChild = null;
+    }
+
+    triangles(): Polygon[] {
+        let triangles: Polygon[] = [];
+        triangles.push(this.poly);
+        if (this.leftChild !== null) {
+            let leftTriangles: Polygon[] = this.leftChild.triangles();
+            triangles = triangles.concat(leftTriangles);
+        }
+
+        if (this.rightChild !== null) {
+            let rightTriangles: Polygon[] = this.rightChild.triangles();
+            triangles = triangles.concat(rightTriangles);
+        }
+
+        return triangles;
     }
 }
 
-class DualTree {
-    root: DualNode | undefined;
-    curr: DualNode | undefined;
-    triangles: Polygon[] | undefined;
-    constructor(root?: DualNode) {
-        this.root = root;
-        this.curr = root;
-        this.triangles = undefined;
-    }
-
-    insert(n: DualNode) {
-        if (this.root === undefined || this.root === null) {
-            this.root = n;
-            this.curr = n;
-            this.triangles?.push(n.poly);
-            return;
-        }
-
-        this.curr?.childen.push(n);
-    }
-
-    join(dt: DualTree) {
-        let ts: Polygon[] | undefined = dt.getTriangles;
-        if (ts === undefined)
-            return;
-        this.triangles = this.triangles?.concat(ts);
-
-        if (dt.root === undefined)
-            return;
-
-        if (this.root === undefined) {
-            this.root = dt.root;
-            return;
-        }
-
-        this.curr?.childen.push(dt.root);
-    }
-
-    delete(n: DualNode) {
-        return;
-    }
-
-    get getTriangles(): Polygon[] | undefined {
-        return this.triangles;
-    }
-}
-
-export { Point, Segment, Graph, Polygon, DualTree, DualNode, Queue};
+export { Point, Segment, Graph, Polygon, DualNode, Queue};

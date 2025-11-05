@@ -75,29 +75,30 @@ function findEar(polygon: Polygon): Polygon[] {
  * @param triangles accumulator polygon array
  * @returns list of triangles that encompass the triangulation
  */
-function triangulate(polygon: Polygon, dt: DualTree) {
+function triangulate(polygon: Polygon): DualNode {
   // if polygon is a triangle simply add it to the dual tree and terminate
   if (polygon.size() === 3) {
-    let dn: DualNode = new DualNode(polygon,[]);
-    dt.insert(dn);
+    let dn: DualNode = new DualNode(polygon);
+    return dn;
   }
 
   let polys: Polygon[] = findEar(polygon);
   let leftPoly: Polygon = polys[0];
   let rightPoly: Polygon = polys[1];
 
-  if (leftPoly.size() > 3 && rightPoly.size() > 3) {
-    let leftDt: DualTree = new DualTree();
-    let rightDt: DualTree = new DualTree();
-    triangulate(leftPoly, leftDt);
-    triangulate(rightPoly, rightDt);
-    dt.join(leftDt);
-    dt.join(rightDt);
-    return;
+  // guranteed since the coordinates of the polygon are given in a clockwise order
+  if (leftPoly.size() === 3) {
+    let dn: DualNode = new DualNode(leftPoly);
+    let leftChild: DualNode = triangulate(rightPoly);
+    dn.leftChild = leftChild;
+    return leftChild;
   }
 
-  triangulate(leftPoly, dt);
-  triangulate(rightPoly, dt);
+  // case when the 2 subpolygons are non-triangles
+  let leftTree: DualNode = triangulate(leftPoly);
+  let rightTree: DualNode = triangulate(rightPoly);
+  leftTree.rightChild = rightTree;
+  return leftTree;
 }
 
 /**
@@ -142,9 +143,10 @@ function getLocations(ps: Point[], triangles: Polygon[]): Map<Point,Polygon|null
  */
 function findLineSegment(polygon: Polygon, ps: Point[]): Segment | null {
 
-  let triangles: Polygon[] = triangulate(polygon);
-  
+  let rootNode: DualNode = triangulate(polygon);
+  let triangles: Polygon[] = rootNode.triangles();
   let point_locations: Map<Point,Polygon|null> = getLocations(ps, triangles);
+
   return null;
 }
 
