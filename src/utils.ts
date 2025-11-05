@@ -60,8 +60,29 @@ function wrapAroundSlice(arr: any[], start: number, end: number): any[] {
 
 
 function compareFn(p1: Point, p2: Point) {
-  if (p1.x < p2.x) return -1;
-  else if (p2.x < p1.x) return 1;
+  if (p1.x < p2.x)
+    return -1;
+  
+  return 1;
 }
 
-export {compareFn, wrapAroundSlice, getMin, pointEquality, isInsideTriangle, computeDet};
+function binarySearch(points: Point[], predicate: CallableFunction): Point | null {
+  let start: number = 0;
+  let end: number = points.length-1;
+  while (start < end) {
+    let middle: number = start + (end - start)/2;
+    if (predicate(points[middle])) {
+      if (!predicate(points[middle+1]))
+        return points[middle];
+
+      start = middle+1;
+      continue;
+    }
+
+    end = middle-1;
+  }
+
+  return null;
+}
+
+export {compareFn, wrapAroundSlice, getMin, pointEquality, isInsideTriangle, computeDet, binarySearch};
