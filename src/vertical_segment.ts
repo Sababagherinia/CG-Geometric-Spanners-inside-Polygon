@@ -1,5 +1,5 @@
-import { Point, Polygon, Segment, DualTree, DualNode, Queue } from "./classes";
-import {wrapAroundSlice, isInsideTriangle, pointEquality, getMin, compareFn} from "./utils";
+import { Point, Polygon, Segment, DualNode} from "./classes";
+import {wrapAroundSlice, isInsideTriangle, pointEquality, getMin, compareFn, binarySearch} from "./utils";
 
 // PREPROCESSING CODE
 
@@ -70,10 +70,9 @@ function findEar(polygon: Polygon): Polygon[] {
 }
 
 /**
- *  TODO look into doing this with an accumulator
+ * 
  * @param polygon polygon to be triangulated
- * @param triangles accumulator polygon array
- * @returns list of triangles that encompass the triangulation
+ * @returns root dual node describing the dual tree of the triangulation
  */
 function triangulate(polygon: Polygon): DualNode {
   // if polygon is a triangle simply add it to the dual tree and terminate
@@ -135,6 +134,74 @@ function getLocations(ps: Point[], triangles: Polygon[]): Map<Point,Polygon|null
   return pointLocations;
 }
 
+function isThreeSplitter(node: DualNode, acc: number, ps: Points[], pointLocations: Map<Point,Polygon>): boolean {
+
+  return false;
+}
+
+function findCenterX(pointsInside: Point[]): number {
+  pointsInside.sort(compareFn);
+  let middle: number = floor(pointsInside.length / 2);
+  let p: Point = pointsInside[middle];
+  let q: Point = pointsInside[middle+1];
+  return (p.x+q.x)/2;
+}
+
+function getSegmentXCoord(rootNode: DualNode | null, ps: Point[], pointLocations: Map<Point,Polygon|null>): number {
+
+  if (rootNode === null)
+    return -1;
+
+  let nodeTriangle: Polygon = rootNode.poly; 
+  let totalPoints: number = pointLocations.entries.length;
+  let heavyCriteration: number = (2/3) * totalPoints;
+  let acc: number = 0;
+
+  let pointsInside: Point[] = [];
+  for (let key of pointLocations.keys()) {
+    let t: Polygon | null | undefined = pointLocations.get(key);
+    if (t === null || t === undefined)
+      continue;
+
+    if (t !== nodeTriangle)
+      continue;
+
+    pointsInside.push(key);
+  } 
+
+  let weight: number = pointsInside.length;
+  acc += weight;
+
+  // Case 1: you found a heavy triangle
+  if (weight > heavyCriteration)      
+    return findCenterX(pointsInside);
+
+  // Case 2: you found a valid triangle
+  if (acc >= totalPoints/3) {
+    let minX: Point = pointsInside[getMin(pointsInside)];
+    function wrapperCompareFn(p: Point): boolean {
+      return compareFn(p, minX) == -1;
+    }
+
+    let nextP: Point | null = binarySearch(ps, wrapperCompareFn);
+    if (nextP === null) 
+      return -1;
+
+    return (minX.x + nextP.x) / 2;
+  }
+
+  // Case 3: you found a triangle that splits the polygon intro 3 pieces of weight < totalPoints/3
+  if (isThreeSplitter(rootNode)) {
+    return -1;
+  }
+
+  // if none of the above cases follow then recurse and return what others return
+  let leftResult: number = getSegmentXCoord(rootNode.leftChild, ps, pointLocations);
+  let rightResult: number = getSegmentXCoord(rootNode.rightChild, ps, pointLocations);
+
+  return max(leftResult, rightResult)
+}
+
 /**
  * 
  * @param polygon Polygon whose vertical line segment we need to compute
@@ -144,6 +211,7 @@ function getLocations(ps: Point[], triangles: Polygon[]): Map<Point,Polygon|null
 function findLineSegment(polygon: Polygon, ps: Point[]): Segment | null {
 
   let rootNode: DualNode = triangulate(polygon);
+  rootNode.isRoot = true;
   let triangles: Polygon[] = rootNode.triangles();
   let point_locations: Map<Point,Polygon|null> = getLocations(ps, triangles);
 
