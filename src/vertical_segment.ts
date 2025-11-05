@@ -1,3 +1,4 @@
+import { TRIANGLES } from "p5";
 import { Point, Polygon, Segment, DualNode} from "./classes";
 import {wrapAroundSlice, isInsideTriangle, pointEquality, getMin, compareFn, binarySearch} from "./utils";
 
@@ -134,11 +135,55 @@ function getLocations(ps: Point[], triangles: Polygon[]): Map<Point,Polygon|null
   return pointLocations;
 }
 
-function isThreeSplitter(node: DualNode, acc: number, ps: Points[], pointLocations: Map<Point,Polygon>): boolean {
+/**
+ * 
+ * @param node DualNode of the dual tree of the triangulation
+ * @param acc Number of covered by so-far-seen triangles
+ * @param ps Points in the polygonal domain
+ * @param pointLocations Map mapping points to their respective triangles
+ * @returns True if the node splits the polygon into 3 sub-polygons each containing number of points less than 1/3 of the total number of points
+ */
+function isThreeSplitter(node: DualNode, acc: number, ps: Points[], pointLocations: Map<Point,Polygon|null>): boolean {
 
-  return false;
+  if (node.leftChild === null || node.rightChild === null)
+    return false;
+
+  let totalPoints: number = ps.length;
+  if (acc >= totalPoints/3)
+    return false;
+
+  let trianglesLeft: Polygon[] = node.leftChild?.triangles();
+  let trianglesRight: Polygon[] = node.rightChild?.triangles();
+  let weightLeft: number = 0;
+  let weightRight: number = 0;
+
+  let restPoints: Point[] = ps.slice(acc);
+
+  for (let i = 0; i < restPoints.length; i++) {
+    let p: Point = ps[i];
+    let t: Polygon | null | undefined = pointLocations.get(p);
+    if (t === null || t === undefined) 
+      continue;
+
+    if (trianglesLeft.indexOf(t) !== -1) {
+      weightLeft += 1;
+      continue;
+    }
+
+    if (trianglesRight.indexOf(t) !== -1) {
+      weightRight += 1;
+      continue;
+    }
+  }
+
+  return weightLeft < totalPoints/3 && weightRight < totalPoints/3;
 }
 
+/**
+ * 
+ * @param pointsInside Points inside of a triangle
+ * @returns Retunrs the x-coordinate that splits the points into 2 roughly equal sets
+ */
 function findCenterX(pointsInside: Point[]): number {
   pointsInside.sort(compareFn);
   let middle: number = floor(pointsInside.length / 2);
@@ -147,6 +192,13 @@ function findCenterX(pointsInside: Point[]): number {
   return (p.x+q.x)/2;
 }
 
+/**
+ * 
+ * @param rootNode root dual node of the dual tree of the triangulation of the polygon
+ * @param ps Points in the polygonal domain
+ * @param pointLocations Map mapping points to their respective triangles
+ * @returns X-coordinate of the vertical segment that would split the polygon into 2 sub-polygons each containing AT MOST 2/3 * total number of points
+ */
 function getSegmentXCoord(rootNode: DualNode | null, ps: Point[], pointLocations: Map<Point,Polygon|null>): number {
 
   if (rootNode === null)
@@ -183,6 +235,7 @@ function getSegmentXCoord(rootNode: DualNode | null, ps: Point[], pointLocations
       return compareFn(p, minX) == -1;
     }
 
+    pointsInside.sort(compareFn);
     let nextP: Point | null = binarySearch(ps, wrapperCompareFn);
     if (nextP === null) 
       return -1;
@@ -191,8 +244,10 @@ function getSegmentXCoord(rootNode: DualNode | null, ps: Point[], pointLocations
   }
 
   // Case 3: you found a triangle that splits the polygon intro 3 pieces of weight < totalPoints/3
-  if (isThreeSplitter(rootNode)) {
-    return -1;
+  if (isThreeSplitter(rootNode, acc, ps, pointLocations)) {
+    pointsInside.sort(compareFn);
+    let pointsToSep: number = totalPoints/3 - acc;
+    
   }
 
   // if none of the above cases follow then recurse and return what others return
