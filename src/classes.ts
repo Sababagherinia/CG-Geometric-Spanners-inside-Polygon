@@ -55,32 +55,18 @@ class Polygon {
     }
 }
 
-class Queue<T> {
-    buffer: T[] = [];
-
-    enqueue(elem: T) {
-        this.buffer.push(elem);
-    }
-
-    dequeue(): T | undefined {
-        return this.buffer.shift();
-    }
-
-    size(): number {
-        return this.buffer.length;
-    }
-}
-
 class DualNode {
     poly: Polygon;
     parent: DualNode | null;
     leftChild: DualNode | null;
     rightChild: DualNode | null;
+    isRoot: boolean;
     constructor(poly: Polygon) {
         this.poly = poly;
         this.parent = null;
         this.leftChild = null;
         this.rightChild = null;
+        this.isRoot = false;
     }
 
     triangles(): Polygon[] {
@@ -100,4 +86,4 @@ class DualNode {
     }
 }
 
-export { Point, Segment, Graph, Polygon, DualNode, Queue};
+export { Point, Segment, Graph, Polygon, DualNode};
