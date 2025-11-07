@@ -85,4 +85,9 @@ function binarySearch(points: Point[], predicate: CallableFunction): Point | nul
   return null;
 }
 
-export {compareFn, wrapAroundSlice, getMin, pointEquality, isInsideTriangle, computeDet, binarySearch};
+// Compute Euclidean distance between two points
+function eucl_distance(p1: Point, p2: Point): number {
+  return Math.sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2);
+}
+
+export {compareFn, wrapAroundSlice, getMin, pointEquality, isInsideTriangle, computeDet, binarySearch, eucl_distance};

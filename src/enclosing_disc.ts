@@ -1,5 +1,6 @@
 // Welzl's algorithm for Minimum Enclosing Disc running in expected O(n) time
 import { Point} from "./classes";
+import { eucl_distance } from "./utils";
 
 // A small epsilon for floating point comparisons
 const EPSILON = 1e-9;
@@ -7,19 +8,14 @@ const EPSILON = 1e-9;
 // Circle type
 type Circle = { center: Point; radius: number };
 
-// Helper function to calculate distance between two points
-// euclidean distance
-function distance(p1: Point, p2: Point): number {
-  return Math.sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2);
-}
-
+// --- Helper Functions ---
 // Circle from two points
 function circleFromTwoPoints(p1: Point, p2: Point): Circle {
   const center = {
     x: (p1.x + p2.x) / 2,
     y: (p1.y + p2.y) / 2,
   };
-  const radius = distance(p1, p2) / 2;
+  const radius = eucl_distance(p1, p2) / 2;
   return { center, radius };
 }
 
@@ -41,13 +37,13 @@ function circleFromThreePoints(p1: Point, p2: Point, p3: Point): Circle | null {
   const cx = (D * E - B * F) / G;
   const cy = (A * F - C * E) / G;
   const center = { x: cx, y: cy };
-  const radius = distance(center, p1);
+  const radius = eucl_distance(center, p1);
   return { center, radius };
 }
 
 // Check if a point lies inside or on a circle
 function isInCircle(p: Point, circle: Circle): boolean {
-  return distance(p, circle.center) <= circle.radius + EPSILON;
+  return eucl_distance(p, circle.center) <= circle.radius + EPSILON;
 }
 
 // --- Core: Welzl's Algorithm ---
@@ -75,7 +71,7 @@ function trivialCircle(points: Point[]): Circle {
   let best: [Point, Point] = [points[0], points[1]];
   for (let i = 0; i < 3; i++) {
     for (let j = i + 1; j < 3; j++) {
-      const d = distance(points[i], points[j]);
+      const d = eucl_distance(points[i], points[j]);
       // Update if this pair is more distant
       if (d > maxDist) {
         maxDist = d;
