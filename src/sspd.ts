@@ -1,5 +1,7 @@
 // algorithm to compute s-semi-separated pairs of clusters (s-SSPD) in a set of 2D points
+// Callahan–Kosaraju SSPD algorithm adaptation
 // Still in progress - making sure it works in all directions and for any number of points
+
 import {Point} from "./classes";
 import { minimumEnclosingDisc} from "./enclosing_disc";
 import { eucl_distance } from "./utils";
@@ -12,9 +14,13 @@ type Pair = [Pointset, Pointset];
 function isSemiSeparated(A: Pointset, B: Pointset, s: number): boolean {
     const discA = minimumEnclosingDisc(A);
     const discB = minimumEnclosingDisc(B);
+
     // Compute distance between centers
     const centerDist = eucl_distance(discA.center, discB.center);
     const minRadius = Math.min(discA.radius, discB.radius);
+    // if either cluster has zero radius, they cannot be semi-separated
+    if (minRadius === 0) return false;
+
     // Check s-semi-separation condition
     // Semi-separation condition: ||cA - cB|| >= s * min(rA, rB)
     // where cA, cB are disc centers and rA, rB are their radius
@@ -22,8 +28,10 @@ function isSemiSeparated(A: Pointset, B: Pointset, s: number): boolean {
 }
 
 //  Recursively partition points and compute s-SSPD pairs
-export function computeSSPD(points: Pointset, EPSILON: number, minClusterSize: number = 3): Pair[] {
+export function computeSSPD(points: Pointset, EPSILON: number, minClusterSize: number = 3, isSorted=false): Pair[] {
     const s = 4 / EPSILON; // recommended by theory
+    // sort points by y-coordinate
+    if (!isSorted) points.sort((a, b) => a.y - b.y);
     // Base case: if points are fewer than the minClusterSize, return empty
     if (points.length <= minClusterSize) {
         return [];

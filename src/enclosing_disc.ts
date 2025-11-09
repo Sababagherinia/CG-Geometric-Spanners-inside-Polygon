@@ -9,6 +9,11 @@ const EPSILON = 1e-9;
 type Circle = { center: Point; radius: number };
 
 // --- Helper Functions ---
+
+// // Compute Euclidean distance between two points
+// function eucl_distance(p1: Point, p2: Point): number {
+//   return Math.sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2);
+// }
 // Circle from two points
 function circleFromTwoPoints(p1: Point, p2: Point): Circle {
   const center = {
