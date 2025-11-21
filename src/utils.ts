@@ -1,4 +1,4 @@
-import { Point} from "./classes";
+import { Point, Segment } from "./classes";
 
 /* eslint-disable no-undef, no-unused-vars */
 function computeDet(p: Point, q: Point, r: Point): number {
@@ -88,6 +88,19 @@ function binarySearch(points: Point[], predicate: CallableFunction): Point | nul
 // Compute Euclidean distance between two points
 function eucl_distance(p1: Point, p2: Point): number {
   return Math.sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2);
+}
+
+/**
+ * 
+ * @param s1 First Line Segment
+ * @param s2 Second Line Segment
+ * @returns Point at the intersection of the 2 line segments
+ */
+function getIntersectionPoint(s1: Segment, s2: Segment): Point {
+  let intersectionX: number = (s2.intercept - s1.intercept) / (s1.slope - s2.slope);
+  let intersectionY: number = s1.computeY(intersectionX);
+
+  return new Point(intersectionX, intersectionY);
 }
 
 export {compareFn, wrapAroundSlice, getMin, pointEquality, isInsideTriangle, computeDet, binarySearch, eucl_distance};

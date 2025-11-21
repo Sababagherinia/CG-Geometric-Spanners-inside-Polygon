@@ -12,10 +12,25 @@ class Point {
 class Segment {
     src: Point;
     dest: Point;
+    slope: number;
+    intercept: number;
     
     constructor(src: Point, dest: Point) {
         this.src = src;
         this.dest = dest;
+
+        this.slope = (this.dest.y - this.src.y) / (this.dest.x - this.dest.x);
+        this.intercept = this.src.y - (this.slope * this.src.x);
+    }
+
+    isOnSegment(p: Point): boolean {
+        let lineY: number = this.slope * p.x + this.intercept;
+
+        return lineY == p.y;
+    }
+
+    computeY(x: number): number {
+        return this.slope * x + this.intercept;
     }
 }
 
