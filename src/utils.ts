@@ -90,6 +90,11 @@ function eucl_distance(p1: Point, p2: Point): number {
   return Math.sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2);
 }
 
+// Compute Manhattan distance between two points
+function manhattan_distance(p1: Point, p2: Point): number {
+    return Math.abs(p1.x - p2.x) + Math.abs(p1.y - p2.y);
+}
+
 /**
  * 
  * @param s1 First Line Segment
@@ -110,4 +115,60 @@ function lessThan(seg1: Segment, seg2: Segment, x: number): Boolean {
   return y1 < y2;
 }
 
-export {compareFn, wrapAroundSlice, getMin, pointEquality, isInsideTriangle, computeDet, binarySearch, eucl_distance, getIntersectionPoint, lessThan};
+// Triangulate a simple polygon using Ear Clipping method
+function triangulate(polygon: Point[]): Point[][] {
+  let n = polygon.length;
+  if (n < 3) return [];
+
+  // Make a copy
+  let verts = polygon.slice();
+  let triangles: Point[][] = [];
+
+  // Ensure polygon is CCW
+  let area = 0;
+  for (let i = 0; i < n; i++) {
+    let p = verts[i];
+    let q = verts[(i + 1) % n];
+    area += p.x * q.y - q.x * p.y;
+  }
+  if (area < 0) verts.reverse();
+
+  while (verts.length > 3) {
+    let earFound = false;
+
+    for (let i = 0; i < verts.length; i++) {
+      let prev = verts[(i - 1 + verts.length) % verts.length];
+      let curr = verts[i];
+      let next = verts[(i + 1) % verts.length];
+
+      // 1. Check convex
+      if (computeDet(prev, curr, next) <= 0) continue;
+
+      // 2. Check no other point is inside
+      let isEar = true;
+      for (let j = 0; j < verts.length; j++) {
+        if (j === i || j === (i - 1 + verts.length) % verts.length || j === (i + 1) % verts.length) continue;
+        if (isInsideTriangle(prev, curr, next, verts[j])) {
+          isEar = false;
+          break;
+        }
+      }
+      if (!isEar) continue;
+
+      // 3. It's an ear
+      triangles.push([prev, curr, next]);
+      verts.splice(i, 1);
+      earFound = true;
+      break;
+    }
+
+    if (!earFound) {
+      throw new Error("Failed to find an ear – polygon might be self-intersecting.");
+    }
+  }
+
+  triangles.push([verts[0], verts[1], verts[2]]);
+  return triangles;
+}
+
+export {compareFn, wrapAroundSlice, getMin, pointEquality, isInsideTriangle, computeDet, binarySearch, eucl_distance, getIntersectionPoint, lessThan, manhattan_distance, triangulate};
