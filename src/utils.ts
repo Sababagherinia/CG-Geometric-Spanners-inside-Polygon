@@ -103,4 +103,11 @@ function getIntersectionPoint(s1: Segment, s2: Segment): Point {
   return new Point(intersectionX, intersectionY);
 }
 
-export {compareFn, wrapAroundSlice, getMin, pointEquality, isInsideTriangle, computeDet, binarySearch, eucl_distance};
+
+function lessThan(seg1: Segment, seg2: Segment, x: number): Boolean {
+  let y1: number = seg1.computeY(x);
+  let y2: number = seg2.computeY(x);
+  return y1 < y2;
+}
+
+export {compareFn, wrapAroundSlice, getMin, pointEquality, isInsideTriangle, computeDet, binarySearch, eucl_distance, getIntersectionPoint, lessThan};

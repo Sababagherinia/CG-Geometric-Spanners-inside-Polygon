@@ -124,14 +124,14 @@ class AVLNode {
  * https://www.geeksforgeeks.org/dsa/insertion-in-an-avl-tree/
  */
 class SegAVLTree {
-    height(node: AVLNode | null): number {
+    static height(node: AVLNode | null): number {
         if (node === null) {
             return 0;
         }
         return node.height;
     }
 
-    rightRotate(y: AVLNode) {
+    static rightRotate(y: AVLNode) {
         const x: AVLNode | null = y.left;
         if (x === null)
             return y;
@@ -152,7 +152,7 @@ class SegAVLTree {
         return x;
     }
 
-    leftRotate(x: AVLNode) {
+    static leftRotate(x: AVLNode) {
         const y: AVLNode | null = x.right;
         if (y === null)
             return x;
@@ -174,14 +174,14 @@ class SegAVLTree {
     }
 
     // Get balance factor of node
-    getBalance(node: AVLNode | null) {
+    static getBalance(node: AVLNode | null) {
         if (node === null) {
             return 0;
         }
         return this.height(node.left) - this.height(node.right);
     }
 
-    insert(node: AVLNode | null, key: Segment, x:number) {
+    static insert(node: AVLNode | null, key: Segment, x:number) {
         if (node === null) {
             return new AVLNode(key);
         }
@@ -223,7 +223,7 @@ class SegAVLTree {
         return node;
     }
 
-    preOrder(root: AVLNode | null) {
+    static preOrder(root: AVLNode | null) {
         if (root !== null) {
             console.log(root.seg + " ");
             this.preOrder(root.left);
@@ -231,7 +231,7 @@ class SegAVLTree {
         }
     }
 
-    minValueNode(node: AVLNode) {
+    static minValueNode(node: AVLNode) {
         let current = node;
         while (current.left !== null) {
             current = current.left;
@@ -239,7 +239,7 @@ class SegAVLTree {
         return current;
     }
 
-    deleteNode(root: AVLNode | null, key: Segment, x:number) {
+    static deleteNode(root: AVLNode | null, key: Segment, x:number) {
         if (root === null) return root;
 
         if (lessThan(key, root.seg, x)) {
@@ -293,7 +293,4 @@ class SegAVLTree {
     }
 }
 
-// Driver code
-let root = null;
-
-export { Point, Segment, Graph, Polygon, DualNode};
+export { Point, Segment, Graph, Polygon, DualNode, AVLNode, SegAVLTree};
