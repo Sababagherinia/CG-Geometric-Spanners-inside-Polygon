@@ -75,30 +75,113 @@ function findEar(polygon: Polygon): Polygon[] {
  * @param polygon polygon to be triangulated
  * @returns root dual node describing the dual tree of the triangulation
  */
-function triangulate(polygon: Polygon): DualNode {
-  // if polygon is a triangle simply add it to the dual tree and terminate
-  if (polygon.size() === 3) {
-    let dn: DualNode = new DualNode(polygon);
-    return dn;
+// function triangulate(polygon: Polygon): DualNode {
+//   // if polygon is a triangle simply add it to the dual tree and terminate
+//   if (polygon.size() === 3) {
+//     let dn: DualNode = new DualNode(polygon);
+//     return dn;
+//   }
+
+//   let polys: Polygon[] = findEar(polygon);
+//   let leftPoly: Polygon = polys[0];
+//   let rightPoly: Polygon = polys[1];
+
+//   // guranteed since the coordinates of the polygon are given in a clockwise order
+//   if (leftPoly.size() === 3) {
+//     let dn: DualNode = new DualNode(leftPoly);
+//     dn.leftChild = triangulate(rightPoly);
+//     return dn;
+//   }
+
+//   // case when the 2 subpolygons are non-triangles
+//   let leftTree: DualNode = triangulate(leftPoly);
+//   let rightTree: DualNode = triangulate(rightPoly);
+//   leftTree.rightChild = rightTree;
+//   return leftTree;
+// }
+
+function isEqual(p: Point, q: Point): Boolean {
+  return p.x == q.x && p.y == q.y;
+}
+
+function isNeighbour(tr1: Point[], tr2: Point[]): Boolean {
+  let counter: number = 0;
+  for (let i = 0; i < tr1.length; i++) {
+    const p = tr1[i];
+    for (let j = 0; j < tr2.length; j++) {
+      const q = tr2[j];
+      if (isEqual(p,q)) counter += 1;
+    }
   }
 
-  let polys: Polygon[] = findEar(polygon);
-  let leftPoly: Polygon = polys[0];
-  let rightPoly: Polygon = polys[1];
+  return counter == 2;
+}
 
-  // guranteed since the coordinates of the polygon are given in a clockwise order
-  if (leftPoly.size() === 3) {
-    let dn: DualNode = new DualNode(leftPoly);
-    let leftChild: DualNode = triangulate(rightPoly);
-    dn.leftChild = leftChild;
-    return leftChild;
+/**
+ * 
+ * @param triangles triangles produced from triangulation of a polygon
+ * @returns root of the DualGraph tree
+ */
+// function generateDualTree(triangles: Point[][]): DualNode {
+//   if (triangles.length === 1)
+//     return new DualNode(triangles[0].slice());
+
+//   let trs: Point[][] = triangles.slice();
+//   let root: DualNode = new DualNode(trs[0].slice());
+//   trs.slice(1);
+
+//   let dns: DualNode[] = [root];
+//   while(dns.length > 0) {
+//     let dn: DualNode | undefined = dns.pop();
+//     if (dn === undefined)
+//       break;
+
+//     for (let i = 0; i < trs.length; i++) {
+//       if (!isNeighbour(dn.poly.points, trs[i])) 
+//         continue;
+
+//       dn.children.push(new DualNode(trs[i].slice()));
+//       trs.splice(i,1);
+//       i--;
+//     }
+
+//     dns.concat(dn.children);
+//   }
+
+//   return root;
+// }
+
+/**
+ * 
+ * @param triangles list of triangles produced by triangulation
+ * @returns adjacency list showing neighbourhoods of triangles
+ */
+function computeDualGraph(triangles: Point[][]): Map<Polygon,Polygon[]> {
+  if (triangles.length === 1)
+    return new Map<Polygon,Polygon[]>([[new Polygon(triangles[0]),[]]]);
+
+  let polygons: Polygon[] = [];
+  let adjList: Map<Polygon,Polygon[]> = new Map<Polygon,Polygon[]>();
+
+  for (let i = 0; i < triangles.length; i++) {
+    let pl: Polygon = new Polygon(triangles[i]);
+    polygons.push(pl);
+    adjList.set(pl,[]);
   }
 
-  // case when the 2 subpolygons are non-triangles
-  let leftTree: DualNode = triangulate(leftPoly);
-  let rightTree: DualNode = triangulate(rightPoly);
-  leftTree.rightChild = rightTree;
-  return leftTree;
+  for (let i = 0; i < polygons.length; i++) {
+    for (let j = 0; j < triangles.length; j++) {
+      if (i === j) continue;
+      if (!isNeighbour(triangles[i],triangles[j])) continue;
+      adjList.get(polygons[i])?.push(polygons[j]);
+    }
+  }
+
+  return adjList;
+}
+
+function computeVerticalLine(adjList: Map<Polygon,Polygon[]>): Segment | null {
+  return null;
 }
 
 /**
@@ -264,7 +347,6 @@ function getSegmentXCoord(rootNode: DualNode | null, ps: Point[], pointLocations
  * @returns vertical line segment such that each subpolygon contains at most 2/3 points in ps
  */
 function findLineSegment(polygon: Polygon, ps: Point[]): Segment | null {
-
   let rootNode: DualNode = triangulate(polygon);
   rootNode.isRoot = true;
   let triangles: Polygon[] = rootNode.triangles();
