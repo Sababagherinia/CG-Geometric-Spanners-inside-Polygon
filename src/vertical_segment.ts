@@ -1,6 +1,6 @@
-import { TRIANGLES } from "p5";
+import p5, { TRIANGLES } from "p5";
 import { Point, Polygon, Segment, DualNode} from "./classes";
-import {wrapAroundSlice, isInsideTriangle, pointEquality, getMin, compareFn, binarySearch} from "./utils";
+import {wrapAroundSlice, isInsideTriangle, pointEquality, getMin, compareFn, binarySearch, isEqualPoly} from "./utils";
 
 // PREPROCESSING CODE
 
@@ -151,6 +151,32 @@ function isNeighbour(tr1: Point[], tr2: Point[]): Boolean {
 //   return root;
 // }
 
+function commonPoints(ps: Point[], qs: Point[]): Point[] {
+  let common: Point[] = [];
+
+  for (let i = 0; i < ps.length; i++) {
+    for (let j = 0; j < qs.length; j++) {
+      if (isEqual(ps[i],qs[j]))
+        common.push(ps[i]);
+    }
+  }
+
+  return common;
+}
+
+/**
+ * 
+ * @param pointsInside Points inside of a triangle
+ * @returns Retunrs the x-coordinate that splits the points into 2 roughly equal sets
+ */
+function findCenterX(pointsInside: Point[]): number {
+  pointsInside.sort(compareFn);
+  let middle: number = floor(pointsInside.length / 2);
+  let p: Point = pointsInside[middle];
+  let q: Point = pointsInside[middle+1];
+  return (p.x+q.x)/2;
+}
+
 /**
  * 
  * @param triangles list of triangles produced by triangulation
@@ -180,7 +206,75 @@ function computeDualGraph(triangles: Point[][]): Map<Polygon,Polygon[]> {
   return adjList;
 }
 
-function computeVerticalLine(adjList: Map<Polygon,Polygon[]>): Segment | null {
+function computeVerticalLine(adjList: Map<Polygon,Polygon[]>, points: Point[]): Segment | null {
+
+  // find polygon with a vertiex that has minimum x-coordinate
+  let min: Polygon = new Polygon([new Point(999999,999999), new Point(999999,999999), new Point(999999,999999)]);
+  let minx: number = Number.MAX_VALUE;
+  let key = adjList.keys().next();
+  while(!key.done) {
+    let xs: number[] = key.value.points.map((p) => p.x);
+    let min_xs = Math.min(...xs);
+    if (min_xs >= minx)
+      continue;
+
+    minx = min_xs;
+    min = key.value;
+  }
+
+  let pointsCopy: Point[] = points.slice();
+  let queue: Polygon[] = [min];
+  let prevPoly: Polygon | null = null;
+  let acc: number = 0;
+  while(queue.length !== 0) {
+    let pl: Polygon | undefined = queue.pop();
+    if (pl === undefined)
+      break;
+
+    // get weight
+    let pointsInside: Point[] = [];
+    for (let i = 0; i < pointsCopy.length; i++) {
+      if (!isInsideTriangle(pl.points[0],pl.points[1],pl.points[2],pointsCopy[i]))
+        continue;
+
+      pointsInside.push(pointsCopy[i]);
+      pointsCopy.slice(i,1);
+      i--;
+    }
+
+    // heavy triangle - return a segment that splits into half
+    if (pointsInside.length >= 2/3*points.length) {
+      let x: number = findCenterX(pointsInside);
+      return new Segment(new Point(x,-999), new Point(x,999));
+    }
+
+    acc += pointsInside.length;
+    let otherNeighbours: Polygon[] | undefined = adjList.get(pl)?.filter((ql) => !isEqualPoly(ql,pl));
+    if (acc >= points.length/3) {
+      // first triangle in the traversal
+      if (prevPoly === null) {
+        let rightPoints: Point[] = pl.points.filter((p) => p.x > minx);
+        return new Segment(rightPoints[0],rightPoints[1]);
+      }
+
+      if (otherNeighbours === undefined || otherNeighbours.length === 0)
+        return null;
+
+      // case when the triangle is not an intersection
+      if (otherNeighbours.length === 1) {
+      // check the common points between this polygon and the next one
+        let common: Point[] = commonPoints(pl.points,otherNeighbours[0].points);
+        if (common.length !== 2)
+          return null;
+
+        return new Segment(common[0],common[1]);
+      }
+
+      // case when the triangle is an intersection point and has overall 3 children
+
+    }
+  }
+
   return null;
 }
 
@@ -262,18 +356,6 @@ function isThreeSplitter(node: DualNode, acc: number, ps: Points[], pointLocatio
   return weightLeft < totalPoints/3 && weightRight < totalPoints/3;
 }
 
-/**
- * 
- * @param pointsInside Points inside of a triangle
- * @returns Retunrs the x-coordinate that splits the points into 2 roughly equal sets
- */
-function findCenterX(pointsInside: Point[]): number {
-  pointsInside.sort(compareFn);
-  let middle: number = floor(pointsInside.length / 2);
-  let p: Point = pointsInside[middle];
-  let q: Point = pointsInside[middle+1];
-  return (p.x+q.x)/2;
-}
 
 /**
  * 

@@ -1,4 +1,5 @@
-import { Point, Segment } from "./classes";
+import { PolySynth } from "p5";
+import { Point, Polygon, Segment } from "./classes";
 
 /* eslint-disable no-undef, no-unused-vars */
 function computeDet(p: Point, q: Point, r: Point): number {
@@ -171,4 +172,23 @@ function triangulate(polygon: Point[]): Point[][] {
   return triangles;
 }
 
-export {compareFn, wrapAroundSlice, getMin, pointEquality, isInsideTriangle, computeDet, binarySearch, eucl_distance, getIntersectionPoint, lessThan, manhattan_distance, triangulate};
+/**
+ * 
+ * @param poly1 Triangle
+ * @param poly2 Triangle
+ * @returns True if the triangles have the same vertices
+ */
+function isEqual(poly1: Polygon, poly2: Polygon): Boolean {
+  if (poly1.size() !== 3 || poly2.size() !== 3)
+    return false;
+
+  for (let i = 0; i < poly1.points.length; i++) {
+    let p: Point = poly1.points[i];
+    if (!poly2.points.some((q) => q.x == p.x && q.y == p.y))
+      return false;
+  }
+
+  return true;
+}
+
+export {compareFn, wrapAroundSlice, getMin, pointEquality, isInsideTriangle, computeDet, binarySearch, eucl_distance, getIntersectionPoint, lessThan, manhattan_distance, triangulate, isEqual};

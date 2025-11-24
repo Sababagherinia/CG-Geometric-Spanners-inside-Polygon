@@ -76,31 +76,13 @@ class Polygon {
 class DualNode {
     poly: Polygon;
     parent: DualNode | null;
-    leftChild: DualNode | null;
-    rightChild: DualNode | null;
-    isRoot: boolean;
-    constructor(poly: Polygon) {
-        this.poly = poly;
+    children: DualNode[];
+    isRoot: Boolean;
+    constructor(triangle: Point[]) {
+        this.poly = new Polygon(triangle)
         this.parent = null;
-        this.leftChild = null;
-        this.rightChild = null;
+        this.children = [];
         this.isRoot = false;
-    }
-
-    triangles(): Polygon[] {
-        let triangles: Polygon[] = [];
-        triangles.push(this.poly);
-        if (this.leftChild !== null) {
-            let leftTriangles: Polygon[] = this.leftChild.triangles();
-            triangles = triangles.concat(leftTriangles);
-        }
-
-        if (this.rightChild !== null) {
-            let rightTriangles: Polygon[] = this.rightChild.triangles();
-            triangles = triangles.concat(rightTriangles);
-        }
-
-        return triangles;
     }
 }
 
