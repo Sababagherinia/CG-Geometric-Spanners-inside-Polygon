@@ -47,8 +47,8 @@ if (isSemiSeparated(clusterA, clusterB, s)) {
     pairs.push([clusterA, clusterB]);
 } else {
     // Step 3: Recursively compute s-SSPD pairs for each cluster
-    const leftPairs = computeSSPD(clusterA, EPSILON, minClusterSize);
-    const rightPairs = computeSSPD(clusterB, EPSILON, minClusterSize);
+    const leftPairs = computeSSPD(clusterA, EPSILON, minClusterSize, isSorted=true);
+    const rightPairs = computeSSPD(clusterB, EPSILON, minClusterSize, isSorted=true);
     pairs.push(...leftPairs, ...rightPairs);
 }
 // Return the list of s-SSPD pairs
