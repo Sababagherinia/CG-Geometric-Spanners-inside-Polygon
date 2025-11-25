@@ -114,49 +114,32 @@ function computeVerticalLine(triangles: Point[][], points: Point[]): Segment | n
         if (next2InnerPoints.length >= points.length/3 && next2InnerPoints.length <= 2/3*points.length)
           return segs[1];
 
-        // get the common point between the two segments of the next two triangles
+        // get the common point between the two segments of the next two triangles and the opposite segment from that common point
         let commonPoint: Point = !isEqual(segs[0].src, segs[1].src) && !isEqual(segs[0].src, segs[1].dest) ? segs[0].src : segs[0].dest;
+        let otherPointOne: Point = isEqual(segs[0].src, commonPoint) ? segs[0].dest : segs[0].src;
+        let otherPointTwo: Point = isEqual(segs[1].src, commonPoint) ? segs[1].dest : segs[1].src;
+        let oppositeSegment: Segment = new Segment(otherPointOne, otherPointTwo);
 
-        // the root of the dual tree is an intersection point - it must have >1/3 of all the points in the polygon
-        if (current[0] == dt.root) {
-          // find the segment that splits the root triangle such that one of the sub-polygons has 1/3 of all the points 
-          let otherPointOne: Point = isEqual(segs[0].src, commonPoint) ? segs[0].dest : segs[0].src;
-          let otherPointTwo: Point = isEqual(segs[1].src, commonPoint) ? segs[1].dest : segs[1].src;
-          let oppositeSegment: Segment = new Segment(otherPointOne, otherPointTwo);
+        // find the segment that splits the current triangle such that one of the sub-polygons has 1/3 of all the points 
+        // sort the points inside the root radially clockwise with respect to the commonPoint
+        let innerPointsWithVertices: Point[] = innerPoints.concat([otherPointOne,otherPointTwo]);
+        innerPointsWithVertices.sort((p,q) => computeDet(p, commonPoint, q));
 
-          // sort the points inside the root radially clockwise with respect to the commonPoint
-          let innerPointsWithVertices: Point[] = innerPoints.concat([otherPointOne,otherPointTwo]);
-          innerPointsWithVertices.sort((p,q) => computeDet(p, q, commonPoint));
-
-          // going clockwise you are making next1 subpolygon fill up to 1/3 of the points
-          let toThird: number = 0;
-          if (isEqual(innerPointsWithVertices[0], otherPointOne)) {
-            toThird = points.length/3 - next1InnerPoints.length;
-          } else {
-            toThird = points.length/3 - next2InnerPoints.length;
-          }
-
-          let middleX: number = (innerPointsWithVertices[toThird].x + innerPointsWithVertices[toThird+1].x)/2;
-          let middleY: number = (innerPointsWithVertices[toThird].y + innerPointsWithVertices[toThird+1].y)/2;
-          let segment: Segment = new Segment(commonPoint, new Point(middleX,middleY));
-          let intersectionPoint: Point = getIntersectionPoint(oppositeSegment,segment);
-          return new Segment(commonPoint, intersectionPoint);
+        // going clockwise you are making next1 subpolygon fill up to 1/3 of the points
+        let toThird: number = 0;
+        if (isEqual(innerPointsWithVertices[0], otherPointOne)) {
+          toThird = points.length/3 - next1InnerPoints.length;
+        } else {
+          toThird = points.length/3 - next2InnerPoints.length;
         }
 
-        // Condition 3 - Triangle Splits the Polygon into 3 sub-polygons of weight < 1/3
-        let totalPointsVisited = totalWeight - prevWeight;
-        let pointsNeeded = points.length/3 - totalPointsVisited;
-
-        let halfPoint: Point = getHalfPoint(segs[1]);
-        let splittingSegment: Segment = new Segment(commonPoint, halfPoint);
-
-        // calculate the direction that the other points need to be in
-        let previousOfPrevious: Polygon[] = dt.getNeighbours(previous, current);
-        let comparisonPoint: Point;
-        if (previousOfPrevious.length === 0) {
-
-        }
-
+        // get the middle point between the toThird vertex and the next one in the inner points and just draw a segment through it from the commonPoint
+        let middleX: number = (innerPointsWithVertices[toThird].x + innerPointsWithVertices[toThird+1].x)/2;
+        let middleY: number = (innerPointsWithVertices[toThird].y + innerPointsWithVertices[toThird+1].y)/2;
+        let segment: Segment = new Segment(commonPoint, new Point(middleX,middleY));
+        let longY: number = segment.computeY(-999);
+        // let intersectionPoint: Point = getIntersectionPoint(oppositeSegment,segment);
+        return new Segment(commonPoint, new Point(-999,longY));
       }
 
       // Condition 1 - Valid Diagonal Case
