@@ -142,7 +142,10 @@ class DualTree {
         return counter == 2;
     }
 
-    getNext(current: Polygon): Polygon[] {
+    getNext(current: Polygon | null): Polygon[] {
+        if (current === null)
+            return [this.root];
+
         let neighbours: Polygon[] | undefined = this.adjList.get(current);
         if (neighbours === undefined)
             return [];
@@ -150,6 +153,53 @@ class DualTree {
         let next_neighbours = neighbours.filter((pl) => pl != this.prevPoly);
         this.prevPoly = current;
         return next_neighbours;
+    }
+
+    peekNext(current: Polygon): Polygon[] {
+        let neighbours: Polygon[] | undefined = this.adjList.get(current);
+        if (neighbours === undefined)
+            return [];
+
+        let next_neighbours = neighbours.filter((pl) => pl != this.prevPoly);
+        return next_neighbours;
+    }
+
+    findCommonPoints(polygon1: Polygon, polygon2: Polygon): Point[] {
+        let common: Point[] = [];
+        for (let i = 0; i < polygon1.points.length; i++) {
+            for (let j = 0; j < polygon2.points.length; j++) {
+                if (this.isEqual(polygon1.points[i],polygon2.points[j]))
+                    common.push(polygon1.points[i]);
+            }
+        }
+
+        return common;
+    }
+
+    getNextSegment(current: Polygon): Segment[] | null {
+        let nextNhs: Polygon[] = this.peekNext(current);
+
+        // last polygon of the tree
+        if (nextNhs.length === 0) {
+            return null;
+        }
+
+        // single neighbour case
+        if (nextNhs.length === 1) {
+            let nh: Polygon = nextNhs[0];
+            let common: Point[] = this.findCommonPoints(current,nh);
+            return [new Segment(common[0],common[1])];
+        }
+
+        // multiple neighbours case - intersections
+        let segments: Segment[] = [];
+        let commonOne: Point[] = this.findCommonPoints(current,nextNhs[0]);
+        let commonTwo: Point[] = this.findCommonPoints(current,nextNhs[1]);
+
+        segments.push(new Segment(commonOne[0],commonOne[1]));
+        segments.push(new Segment(commonTwo[0],commonTwo[1]));
+
+        return segments;
     }
 }
 
@@ -342,4 +392,4 @@ class SegAVLTree {
     }
 }
 
-export { Point, Segment, Graph, Polygon, DualNode, AVLNode, SegAVLTree};
+export { Point, Segment, Graph, Polygon, DualNode, AVLNode, SegAVLTree, DualTree};
