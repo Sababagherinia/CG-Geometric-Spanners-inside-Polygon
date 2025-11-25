@@ -216,6 +216,7 @@ function computeVerticalLine(triangles: Point[][], points: Point[]): Segment | n
   let dt: DualTree = new DualTree(triangles);
   let previous: Polygon | null = null;
   let pointsCopy: Point[] = points.slice();
+  let prevWeight: number = 0;
   let totalWeight = 0;
 
   while(true) {
@@ -248,16 +249,35 @@ function computeVerticalLine(triangles: Point[][], points: Point[]): Segment | n
       continue;
     }
 
+    // the triangle is at a point of intersection
     if (nhs.length === 2) {
       let nh1: Polygon = nhs[0];
       let nh2: Polygon = nhs[1];
 
-      let nh1_points = getInnerPoints(nh1, points);
-      let nh2_points = getInnerPoints(nh2, points);
+      let nh1InnerPoints = getInnerPoints(nh1, points);
+      let nh2InnerPoints = getInnerPoints(nh2, points);
+
+      if (previous === null)
+        return null;
+
+      let segs: Segment[] | null = dt.getNextSegment(previous);
+      if (segs === null)
+        return null;
+
+      // return the next segment of current that corresponds to nh1
+      if (nh1InnerPoints.length >= points.length/3) 
+        return segs[0];
+
+      // return the next segment of the current that corresponds to nh2
+      if (nh2InnerPoints.length >= points.length/3)
+        return segs[1];
+
+      // Condition 3 - Triangle Splits the Polygon into 3 sub-polygons of weight < 1/3
+      let totalPointsVisited = totalWeight - prevWeight;
+      let pointsNeeded = points.length/3 - totalPointsVisited;
+      let commonPoint = !isEqual(segs[0].src, segs[1].src) && !isEqual(segs[0].src, segs[1].dest) ? segs[0].src : segs[0].dest;
     }
   }
-
-  return null;
 }
 
 /**
