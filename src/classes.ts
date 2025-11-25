@@ -1,6 +1,6 @@
 /// <reference types="p5/global" />
 
-import { lessThan } from "./utils";
+import { isEqualPoly, lessThan } from "./utils";
 
 class Point {
   x: number;
@@ -126,6 +126,17 @@ class DualTree {
         return counter == 2;
     }
 
+    getNeighbours(current: Polygon, except?: Polygon[]): Polygon[] {
+        if (except === undefined)
+            except = [];
+
+        let neighbours: Polygon[] | undefined = this.adjList.get(current);
+        if (neighbours === undefined)
+            return [];
+
+        return neighbours.filter((pl) => !except.some((ql) => isEqualPoly(pl, ql)));
+    }
+
     getNext(current: Polygon | null, previous?: Polygon | null): Polygon[] {
         if (current === null)
             return [this.root];
@@ -143,10 +154,16 @@ class DualTree {
         return next_neighbours;
     }
 
-    peekNext(current: Polygon): Polygon[] {
+    peekNext(current: Polygon, previous?: Polygon | null): Polygon[] {
         let neighbours: Polygon[] | undefined = this.adjList.get(current);
         if (neighbours === undefined)
             return [];
+
+        if (previous === undefined)
+            previous = this.prevPoly;
+
+        if (previous === null)
+            return neighbours;
 
         let next_neighbours = neighbours.filter((pl) => pl != this.prevPoly);
         return next_neighbours;
