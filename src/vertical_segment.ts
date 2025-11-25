@@ -129,16 +129,18 @@ function computeVerticalLine(triangles: Point[][], points: Point[]): Segment | n
           innerPointsWithVertices.sort((p,q) => computeDet(p, q, commonPoint));
 
           // going clockwise you are making next1 subpolygon fill up to 1/3 of the points
+          let toThird: number = 0;
           if (isEqual(innerPointsWithVertices[0], otherPointOne)) {
-            let toThird: number = points.length/3 - next1InnerPoints.length;
-            let middleX: number = (innerPointsWithVertices[toThird].x + innerPointsWithVertices[toThird+1].x)/2;
-            let middleY: number = (innerPointsWithVertices[toThird].y + innerPointsWithVertices[toThird+1].y)/2;
-            let segment: Segment = new Segment(commonPoint, new Point(middleX,middleY));
-            let intersectionPoint: Point = getIntersectionPoint(oppositeSegment,segment);
-            return new Segment(commonPoint, intersectionPoint);
+            toThird = points.length/3 - next1InnerPoints.length;
+          } else {
+            toThird = points.length/3 - next2InnerPoints.length;
           }
-          
-          // determine 
+
+          let middleX: number = (innerPointsWithVertices[toThird].x + innerPointsWithVertices[toThird+1].x)/2;
+          let middleY: number = (innerPointsWithVertices[toThird].y + innerPointsWithVertices[toThird+1].y)/2;
+          let segment: Segment = new Segment(commonPoint, new Point(middleX,middleY));
+          let intersectionPoint: Point = getIntersectionPoint(oppositeSegment,segment);
+          return new Segment(commonPoint, intersectionPoint);
         }
 
         // Condition 3 - Triangle Splits the Polygon into 3 sub-polygons of weight < 1/3
