@@ -142,7 +142,7 @@ function triangulate(polygon: Point[]): Point[][] {
       let next = verts[(i + 1) % verts.length];
 
       // 1. Check convex
-      if (computeDet(prev, curr, next) <= 0) continue;
+      if (computeDet(prev, curr, next) >= 0) continue;
 
       // 2. Check no other point is inside
       let isEar = true;

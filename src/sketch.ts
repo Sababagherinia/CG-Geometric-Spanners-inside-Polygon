@@ -1,7 +1,7 @@
 /// <reference types="p5/global" />
-import { Point, Polygon, Segment } from "./classes.js";
-import { computeDet } from "./utils.js";
-import { computeSplittingSegmentWrapper } from "./vertical_segment.js";
+import { DualTree, Point, Segment } from "./classes.js";
+import { computeDet, triangulate } from "./utils.js";
+import { computeSplittingSegment } from "./vertical_segment.js";
 
 var points: Point[] = [];
 var segments: Segment[] = [];
@@ -21,6 +21,7 @@ function setup() {
     points = [];
     segments = [];
     innerPoints = [];
+    splittingSegment = null;
     polygonDone = false;
     clear();
   });
@@ -86,8 +87,14 @@ function windowResized() {
 
 function getSplittingLine() {
   points.sort((p,q) => computeDet(p,points[0],q));
-  let polygon: Polygon = new Polygon(points);
-  let ss: Segment | null = computeSplittingSegmentWrapper(polygon, innerPoints);
+  let triangles: Point[][] = triangulate(points);
+
+  console.log("Creating the Dual Tree...");
+  let dt: DualTree = new DualTree(triangles);
+
+  console.log("Computing the splitting line segment...");
+  let ss: Segment | null = computeSplittingSegment(dt, innerPoints);
+
   if (ss === null)
     console.log("The splitting segment is null - check the code...");
   splittingSegment = ss;

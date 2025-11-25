@@ -68,9 +68,9 @@ function getWeight(polygon: Polygon, previous: Polygon | null, dt: DualTree, poi
   return [];
 }
 
-function computeSplittingSegment(triangles: Point[][], points: Point[]): Segment | null {
+function computeSplittingSegment(dt: DualTree, points: Point[]): Segment | null {
 
-  let dt: DualTree = new DualTree(triangles); // dual tree representing the triangulation
+  // let dt: DualTree = new DualTree(triangles); // dual tree representing the triangulation
   let previous: Polygon | null = null; // previously processed triangle
   let pointsCopy: Point[] = points.slice(); // copy of the points triangle
   // let prevWeight: number = 0; // weight of the previous polygon
@@ -199,8 +199,9 @@ function computeSplittingSegment(triangles: Point[][], points: Point[]): Segment
  */
 function computeSplittingSegmentWrapper(polygon: Polygon, points: Point[]): Segment | null {
   let triangles: Point[][] = triangulate(polygon.points);
-  let splittingSegment: Segment | null = computeSplittingSegment(triangles, points);
+  let dt: DualTree = new DualTree(triangles);
+  let splittingSegment: Segment | null = computeSplittingSegment(dt, points);
   return splittingSegment;
 }
 
-export {computeSplittingSegmentWrapper};
+export {computeSplittingSegmentWrapper, computeSplittingSegment};
