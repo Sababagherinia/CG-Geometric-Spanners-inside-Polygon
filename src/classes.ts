@@ -86,6 +86,73 @@ class DualNode {
     }
 }
 
+class DualTree {
+    adjList: Map<Polygon,Polygon[]> = new Map<Polygon,Polygon[]>();
+    polygons: Polygon[] = [];
+    prevPoly: Polygon | null = null;
+    root: Polygon;
+    current: Polygon;
+    constructor(triangles: Point[][]) {
+        if (triangles.length === 1) {
+            this.polygons = [new Polygon(triangles[0])];
+            this.adjList = new Map<Polygon,Polygon[]>([[this.polygons[0],[]]]);
+            this.root = this.polygons[0];
+        } else {
+            let minx: number = Number.MAX_VALUE;
+            let minIdx: number = 0;
+            for (let i = 0; i < triangles.length; i++) {
+
+                let x_coords = triangles[i].map((p) => p.x);
+                let x_coords_min = Math.min(...x_coords);
+                if (x_coords_min < minx) {
+                    minx = x_coords_min;
+                    minIdx = i;
+                }
+
+                let pl: Polygon = new Polygon(triangles[i]);
+                this.polygons.push(pl);
+                this.adjList.set(pl,[]);
+            }
+            this.root = this.polygons[minIdx];
+    
+            for (let i = 0; i < this.polygons.length; i++) {
+                for (let j = 0; j < this.polygons.length; j++) {
+                    if (i === j) continue;
+                    if (!this.isNeighbour(this.polygons[i],this.polygons[j])) continue;
+                    this.adjList.get(this.polygons[i])?.push(this.polygons[j]);
+                }
+            }
+        }
+
+        this.current = this.root;
+    }
+
+    isEqual(p: Point, q: Point): Boolean {
+        return p.x == q.x && p.y == q.y;
+    }
+
+    isNeighbour(tr1: Polygon, tr2: Polygon): Boolean {
+        let counter: number = 0;
+        for (let i = 0; i < tr1.size(); i++) {
+            for (let j = 0; j < tr2.size(); j++) {
+                if (this.isEqual(tr1.points[i],tr2.points[j])) counter += 1;
+            }
+        }
+
+        return counter == 2;
+    }
+
+    getNext(current: Polygon): Polygon[] {
+        let neighbours: Polygon[] | undefined = this.adjList.get(current);
+        if (neighbours === undefined)
+            return [];
+
+        let next_neighbours = neighbours.filter((pl) => pl != this.prevPoly);
+        this.prevPoly = current;
+        return next_neighbours;
+    }
+}
+
 
 class AVLNode {
     seg: Segment;
