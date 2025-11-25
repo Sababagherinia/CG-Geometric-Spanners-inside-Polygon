@@ -1,4 +1,3 @@
-import p5, { TRIANGLES } from "p5";
 import { Point, Polygon, Segment, DualTree} from "./classes";
 import {isInsideTriangle, compareFn, computeDet, triangulate} from "./utils";
 
@@ -8,18 +7,18 @@ function isEqual(p: Point, q: Point): Boolean {
   return p.x == q.x && p.y == q.y;
 }
 
-function commonPoints(ps: Point[], qs: Point[]): Point[] {
-  let common: Point[] = [];
+// function commonPoints(ps: Point[], qs: Point[]): Point[] {
+//   let common: Point[] = [];
 
-  for (let i = 0; i < ps.length; i++) {
-    for (let j = 0; j < qs.length; j++) {
-      if (isEqual(ps[i],qs[j]))
-        common.push(ps[i]);
-    }
-  }
+//   for (let i = 0; i < ps.length; i++) {
+//     for (let j = 0; j < qs.length; j++) {
+//       if (isEqual(ps[i],qs[j]))
+//         common.push(ps[i]);
+//     }
+//   }
 
-  return common;
-}
+//   return common;
+// }
 
 /**
  * 
@@ -76,7 +75,7 @@ function computeSplittingSegment(triangles: Point[][], points: Point[]): Segment
   let dt: DualTree = new DualTree(triangles); // dual tree representing the triangulation
   let previous: Polygon | null = null; // previously processed triangle
   let pointsCopy: Point[] = points.slice(); // copy of the points triangle
-  let prevWeight: number = 0; // weight of the previous polygon
+  // let prevWeight: number = 0; // weight of the previous polygon
   let totalWeight = 0; // weight of all the thus-far visited triangles
 
   while(true) {
@@ -166,16 +165,16 @@ function computeSplittingSegment(triangles: Point[][], points: Point[]): Segment
  * @param polygons list of triangles from the triangulation
  * @returns a triangle in the list which contains the point p
  */
-function pointLocation(p: Point, triangles: Polygon[]): Polygon | null {
-  for (let i = 0; i < triangles.length; i++) {
-    let triangle: Polygon = triangles[i];
-    if (isInsideTriangle(triangle.points[0],triangle.points[1],triangle.points[2],p)) {
-      return triangle;
-    }    
-  }
+// function pointLocation(p: Point, triangles: Polygon[]): Polygon | null {
+//   for (let i = 0; i < triangles.length; i++) {
+//     let triangle: Polygon = triangles[i];
+//     if (isInsideTriangle(triangle.points[0],triangle.points[1],triangle.points[2],p)) {
+//       return triangle;
+//     }    
+//   }
 
-  return null;
-}
+//   return null;
+// }
 
 /**
  * 
@@ -183,16 +182,16 @@ function pointLocation(p: Point, triangles: Polygon[]): Polygon | null {
  * @param triangles triangles in the triangulation
  * @returns hash map mapping points to their respective locations
  */
-function getLocations(ps: Point[], triangles: Polygon[]): Map<Point,Polygon|null> {
-  const pointLocations: Map<Point,Polygon|null> = new Map();
+// function getLocations(ps: Point[], triangles: Polygon[]): Map<Point,Polygon|null> {
+//   const pointLocations: Map<Point,Polygon|null> = new Map();
 
-  for (let i = 0; i < ps.length; i++) {
-    let p: Point = ps[i];
-    let location: Polygon | null = pointLocation(p, triangles); 
-    pointLocations.set(p, location);
-  }
-  return pointLocations;
-}
+//   for (let i = 0; i < ps.length; i++) {
+//     let p: Point = ps[i];
+//     let location: Polygon | null = pointLocation(p, triangles); 
+//     pointLocations.set(p, location);
+//   }
+//   return pointLocations;
+// }
 
 /**
  * 
@@ -205,3 +204,5 @@ function computeSplittingSegmentWrapper(polygon: Polygon, points: Point[]): Segm
   let splittingSegment: Segment | null = computeSplittingSegment(triangles, points);
   return splittingSegment;
 }
+
+export {computeSplittingSegmentWrapper};

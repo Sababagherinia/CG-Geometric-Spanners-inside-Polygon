@@ -1,6 +1,6 @@
 /// <reference types="p5/global" />
 
-import { isEqualPoly, lessThan } from "./utils";
+import { isEqualPoly } from "./utils";
 
 class Point {
   x: number;

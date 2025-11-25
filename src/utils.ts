@@ -1,4 +1,3 @@
-import { PolySynth } from "p5";
 import { Point, Polygon, Segment } from "./classes";
 
 /* eslint-disable no-undef, no-unused-vars */
@@ -178,7 +177,7 @@ function triangulate(polygon: Point[]): Point[][] {
  * @param poly2 Triangle
  * @returns True if the triangles have the same vertices
  */
-function isEqual(poly1: Polygon, poly2: Polygon): Boolean {
+function isEqualPoly(poly1: Polygon, poly2: Polygon): Boolean {
   if (poly1.size() !== 3 || poly2.size() !== 3)
     return false;
 
@@ -191,4 +190,30 @@ function isEqual(poly1: Polygon, poly2: Polygon): Boolean {
   return true;
 }
 
-export {compareFn, wrapAroundSlice, getMin, pointEquality, isInsideTriangle, computeDet, binarySearch, eucl_distance, getIntersectionPoint, lessThan, manhattan_distance, triangulate, isEqual};
+
+function getHalfPoint(segment: Segment): Point {
+  let newX: number = (segment.src.x + segment.dest.x)/2;
+  let newY: number = (segment.src.y + segment.dest.y)/2;
+  return new Point(newX, newY);
+}
+
+
+// function split(polygon: Polygon, src: number, dest: number): Polygon[] {
+//     let start: number = src;
+//     let end: number = dest;
+
+//     let right_points: Point[] = wrapAroundSlice(polygon.points, start, end);
+//     let right_segs: Segment[] = wrapAroundSlice(polygon.segments, start, end - 1);
+//     right_segs.push(new Segment(polygon.points[end], polygon.points[start]));
+
+//     let left_points = wrapAroundSlice(polygon.points, end, start);
+//     let left_segs: Segment[] = wrapAroundSlice(polygon.segments, end, start - 1);
+//     left_segs.push(new Segment(polygon.points[start], polygon.points[end]));
+
+//     return [
+//       new Polygon(left_points, left_segs),
+//       new Polygon(right_points, right_segs),
+//     ];
+// }
+
+export {compareFn, wrapAroundSlice, getMin, pointEquality, isInsideTriangle, computeDet, binarySearch, eucl_distance, getIntersectionPoint, lessThan, manhattan_distance, triangulate, isEqualPoly, getHalfPoint};
