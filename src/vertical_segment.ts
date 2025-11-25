@@ -118,7 +118,7 @@ function computeSplittingSegment(triangles: Point[][], points: Point[]): Segment
       // find the segment that splits the current triangle such that one of the sub-polygons has 1/3 of all the points 
       // sort the points inside the root radially clockwise with respect to the commonPoint
       let innerPointsWithVertices: Point[] = innerPoints.concat([otherPointOne,otherPointTwo]);
-      innerPointsWithVertices.sort((p,q) => computeDet(p, commonPoint, q));
+      innerPointsWithVertices.sort((p,q) => -computeDet(p, commonPoint, q));
 
       // going clockwise you are making next1 subpolygon fill up to 1/3 of the points
       let toThird: number = 0;
