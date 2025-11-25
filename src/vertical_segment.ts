@@ -1,5 +1,5 @@
 import p5, { TRIANGLES } from "p5";
-import { Point, Polygon, Segment, DualNode} from "./classes";
+import { Point, Polygon, Segment, DualNode, DualTree} from "./classes";
 import {wrapAroundSlice, isInsideTriangle, pointEquality, getMin, compareFn, binarySearch, isEqualPoly} from "./utils";
 
 // PREPROCESSING CODE
@@ -177,101 +177,83 @@ function findCenterX(pointsInside: Point[]): number {
   return (p.x+q.x)/2;
 }
 
-/**
- * 
- * @param triangles list of triangles produced by triangulation
- * @returns adjacency list showing neighbourhoods of triangles
- */
-function computeDualGraph(triangles: Point[][]): Map<Polygon,Polygon[]> {
-  if (triangles.length === 1)
-    return new Map<Polygon,Polygon[]>([[new Polygon(triangles[0]),[]]]);
-
-  let polygons: Polygon[] = [];
-  let adjList: Map<Polygon,Polygon[]> = new Map<Polygon,Polygon[]>();
-
-  for (let i = 0; i < triangles.length; i++) {
-    let pl: Polygon = new Polygon(triangles[i]);
-    polygons.push(pl);
-    adjList.set(pl,[]);
-  }
-
-  for (let i = 0; i < polygons.length; i++) {
-    for (let j = 0; j < triangles.length; j++) {
-      if (i === j) continue;
-      if (!isNeighbour(triangles[i],triangles[j])) continue;
-      adjList.get(polygons[i])?.push(polygons[j]);
-    }
-  }
-
-  return adjList;
-}
-
-function computeVerticalLine(adjList: Map<Polygon,Polygon[]>, points: Point[]): Segment | null {
-
-  // find polygon with a vertiex that has minimum x-coordinate
-  let min: Polygon = new Polygon([new Point(999999,999999), new Point(999999,999999), new Point(999999,999999)]);
-  let minx: number = Number.MAX_VALUE;
-  let key = adjList.keys().next();
-  while(!key.done) {
-    let xs: number[] = key.value.points.map((p) => p.x);
-    let min_xs = Math.min(...xs);
-    if (min_xs >= minx)
-      continue;
-
-    minx = min_xs;
-    min = key.value;
-  }
-
-  let pointsCopy: Point[] = points.slice();
-  let queue: Polygon[] = [min];
-  let prevPoly: Polygon | null = null;
-  let acc: number = 0;
-  while(queue.length !== 0) {
-    let pl: Polygon | undefined = queue.pop();
-    if (pl === undefined)
-      break;
-
-    // get weight
+function getInnerPoints(polygon: Polygon, points: Point[]) {
     let pointsInside: Point[] = [];
-    for (let i = 0; i < pointsCopy.length; i++) {
-      if (!isInsideTriangle(pl.points[0],pl.points[1],pl.points[2],pointsCopy[i]))
+    for (let i = 0; i < points.length; i++) {
+      if (!isInsideTriangle(polygon.points[0], polygon.points[1], polygon.points[2], points[i]))
         continue;
 
-      pointsInside.push(pointsCopy[i]);
-      pointsCopy.slice(i,1);
+      pointsInside.push(points[i]);
+      points.slice(i,1);
       i--;
     }
 
-    // heavy triangle - return a segment that splits into half
-    if (pointsInside.length >= 2/3*points.length) {
-      let x: number = findCenterX(pointsInside);
-      return new Segment(new Point(x,-999), new Point(x,999));
+    return pointsInside;
+}
+
+function getWeight(polygon: Polygon, previous: Polygon, dt: DualTree, points: Point[]): Point[] {
+  let innerPoints: Point[] = getInnerPoints(polygon,points);
+  let prev: Polygon = previous;
+
+  let nhs: Polygon[] = dt.getNext(polygon, prev);
+  if (nhs.length === 0)
+    return innerPoints;
+
+  if (nhs.length === 1) {
+    return innerPoints.concat(getWeight(nhs[0], polygon, dt, points));
+  }
+
+  if (nhs.length === 2) {
+    let new_inner_points: Point[] = innerPoints.concat(getWeight(nhs[0], polygon, dt, points));
+    return new_inner_points.concat(getWeight(nhs[0], polygon, dt, points));
+  }
+
+  return [];
+}
+
+function computeVerticalLine(triangles: Point[][], points: Point[]): Segment | null {
+
+  let dt: DualTree = new DualTree(triangles);
+  let previous: Polygon | null = null;
+  let pointsCopy: Point[] = points.slice();
+  let totalWeight = 0;
+
+  while(true) {
+    let nhs: Polygon[] = dt.getNext(previous);
+    if (nhs.length === 0) {
+      return null;
     }
 
-    acc += pointsInside.length;
-    let otherNeighbours: Polygon[] | undefined = adjList.get(pl)?.filter((ql) => !isEqualPoly(ql,pl));
-    if (acc >= points.length/3) {
-      // first triangle in the traversal
-      if (prevPoly === null) {
-        let rightPoints: Point[] = pl.points.filter((p) => p.x > minx);
-        return new Segment(rightPoints[0],rightPoints[1]);
+    if (nhs.length === 1) {
+      let innerPoints: Point[] = getInnerPoints(nhs[0], pointsCopy);
+      let weight: number = innerPoints.length;
+      totalWeight += weight;
+
+      // Condition 1 - Valid Diagonal Case
+      if (totalWeight >= points.length/3) {
+        let segs: Segment[] | null = dt.getNextSegment(nhs[0]);
+
+        // you only have one neighbour
+        if (segs !== null && segs.length === 1)
+          return segs[0];
       }
 
-      if (otherNeighbours === undefined || otherNeighbours.length === 0)
-        return null;
-
-      // case when the triangle is not an intersection
-      if (otherNeighbours.length === 1) {
-      // check the common points between this polygon and the next one
-        let common: Point[] = commonPoints(pl.points,otherNeighbours[0].points);
-        if (common.length !== 2)
-          return null;
-
-        return new Segment(common[0],common[1]);
+      // Condition 2 - heavy triangle case
+      if (weight > 2/3*points.length) {
+        let x: number = findCenterX(innerPoints);
+        return new Segment(new Point(x,-999), new Point(x,999));
       }
 
-      // case when the triangle is an intersection point and has overall 3 children
+      previous = nhs[0];
+      continue;
+    }
 
+    if (nhs.length === 2) {
+      let nh1: Polygon = nhs[0];
+      let nh2: Polygon = nhs[1];
+
+      let nh1_points = getInnerPoints(nh1, points);
+      let nh2_points = getInnerPoints(nh2, points);
     }
   }
 
