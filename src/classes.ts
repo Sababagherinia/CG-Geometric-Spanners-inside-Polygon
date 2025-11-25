@@ -91,7 +91,6 @@ class DualTree {
     polygons: Polygon[] = [];
     prevPoly: Polygon | null = null;
     root: Polygon;
-    current: Polygon;
     constructor(triangles: Point[][]) {
         if (triangles.length === 1) {
             this.polygons = [new Polygon(triangles[0])];
@@ -123,8 +122,6 @@ class DualTree {
                 }
             }
         }
-
-        this.current = this.root;
     }
 
     isEqual(p: Point, q: Point): Boolean {
@@ -142,15 +139,19 @@ class DualTree {
         return counter == 2;
     }
 
-    getNext(current: Polygon | null): Polygon[] {
+    getNext(current: Polygon | null, previous?: Polygon | null): Polygon[] {
         if (current === null)
             return [this.root];
+
+        if (previous === undefined) {
+            previous = this.prevPoly;
+        }
 
         let neighbours: Polygon[] | undefined = this.adjList.get(current);
         if (neighbours === undefined)
             return [];
 
-        let next_neighbours = neighbours.filter((pl) => pl != this.prevPoly);
+        let next_neighbours = neighbours.filter((pl) => pl != previous);
         this.prevPoly = current;
         return next_neighbours;
     }
