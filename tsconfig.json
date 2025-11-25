@@ -6,7 +6,7 @@
 
     /* Compilation target */
     "target": "es6",
-    "module": "none", 
+    "module": "es2020", 
 
     /* Browser environment */
     "lib": ["es6", "dom"],

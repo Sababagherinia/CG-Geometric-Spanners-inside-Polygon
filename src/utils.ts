@@ -1,4 +1,4 @@
-import { Point, Polygon, Segment } from "./classes";
+import { Point, Polygon, Segment } from "./classes.js";
 
 /* eslint-disable no-undef, no-unused-vars */
 function computeDet(p: Point, q: Point, r: Point): number {

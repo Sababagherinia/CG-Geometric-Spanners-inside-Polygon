@@ -1,21 +1,10 @@
 /// <reference types="p5/global" />
+import { Point, Polygon, Segment } from "./classes.js";
+import { computeSplittingSegmentWrapper } from "./vertical_segment.js";
 
-import { Polygon, Segment } from "./classes";
-import { computeSplittingSegmentWrapper } from "./vertical_segment";
-
-class Points{
-  x: number;
-  y: number;
-  
-  constructor(x: number, y: number) {
-    this.x = x;
-    this.y = y;
-  }
-}
-
-var points: Points[] = [];
+var points: Point[] = [];
 var polygonDone: boolean = false;
-var innerPoints: Points[] = [];
+var innerPoints: Point[] = [];
 var button: any;
 var buttonSL: any;
 var buttonInnerPoints: any;
@@ -58,9 +47,9 @@ function draw() {
 function mousePressed() {
   if (mouseX >= 0 && mouseX <= width && mouseY >= 0 && mouseY <= height) {
     if (polygonDone)
-      innerPoints.push(new Points(mouseX, mouseY));
+      innerPoints.push(new Point(mouseX, mouseY));
     else 
-      points.push(new Points(mouseX, mouseY));
+      points.push(new Point(mouseX, mouseY));
   }
 }
 
@@ -75,4 +64,10 @@ function getSplittingLine() {
     console.log("The splitting segment is null - check the code...");
   splittingSegment = ss;
 }
+
+// Expose functions globally so p5 can find them
+(window as any).setup = setup;
+(window as any).draw = draw;
+(window as any).mousePressed = mousePressed;
+(window as any).windowResized = windowResized;
 

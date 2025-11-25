@@ -1,7 +1,5 @@
-import { Point, Polygon, Segment, DualTree} from "./classes";
-import {isInsideTriangle, compareFn, computeDet, triangulate} from "./utils";
-
-// PREPROCESSING CODE
+import { Point, Polygon, Segment, DualTree} from "./classes.js";
+import {isInsideTriangle, compareFn, computeDet, triangulate} from "./utils.js";
 
 function isEqual(p: Point, q: Point): Boolean {
   return p.x == q.x && p.y == q.y;

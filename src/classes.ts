@@ -1,6 +1,4 @@
-/// <reference types="p5/global" />
-
-import { isEqualPoly } from "./utils";
+import { isEqualPoly } from "./utils.js";
 
 class Point {
   x: number;
