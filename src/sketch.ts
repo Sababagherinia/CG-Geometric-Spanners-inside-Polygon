@@ -153,7 +153,7 @@ function getSplittingLine() {
 
 function createSpannerWrapper() {
   let polygon: Polygon = new Polygon(points);
-  let segments: Segment[] = constructSpanner(polygon, innerPoints, 5)
+  let segments: Segment[] = constructSpanner(polygon, innerPoints, 10)
   spannerSegments = segments;
   console.log("Spanner length is 0");
   spannerConstructed = true && spannerSegments.length > 0;

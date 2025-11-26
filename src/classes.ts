@@ -20,14 +20,18 @@ class Segment {
         this.src = src;
         this.dest = dest;
 
-        this.slope = (this.dest.y - this.src.y) / (this.dest.x - this.dest.x);
+        // infinity slope - add a small offset
+        if (this.src.x === this.dest.x) {
+            this.dest.x += 0.00001;
+        }
+        this.slope = (this.dest.y - this.src.y) / (this.dest.x - this.src.x);
         this.intercept = this.src.y - (this.slope * this.src.x);
     }
 
     isOnSegment(p: Point): boolean {
         let lineY: number = this.slope * p.x + this.intercept;
 
-        return lineY == p.y;
+        return lineY === p.y;
     }
 
     computeY(x: number): number {

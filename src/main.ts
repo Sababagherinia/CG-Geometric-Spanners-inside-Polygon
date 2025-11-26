@@ -118,7 +118,7 @@ function constructSpanner(polygon: Polygon, points: Point[], epsilon: number): S
         let [pl,distance]: [Point,number] = projectPointToVerticalLineGeodesic(p, newSS.src.x, newPoly, yMin, yMax);
         projectionsMap.set(p, [pl,distance]);
         inverseProjectionsMap.set(pl, [p,distance]);
-        projections.push(p);
+        projections.push(pl);
     }
 
     // compute s-SSPD
