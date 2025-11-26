@@ -33,13 +33,12 @@ function findCenterX(pointsInside: Point[]): number {
 
 function getInnerPoints(polygon: Polygon, points: Point[]) {
     let pointsInside: Point[] = [];
-    for (let i = 0; i < points.length; i++) {
+    for (let i = points.length-1; i >= 0; i--) {
       if (!isInsideTriangle(polygon.points[0], polygon.points[1], polygon.points[2], points[i]))
         continue;
 
       pointsInside.push(points[i]);
       points.slice(i,1);
-      i--;
     }
 
     return pointsInside;
@@ -93,11 +92,11 @@ function computeSplittingSegment(dt: DualTree, points: Point[]): Segment | null 
       let next1: Polygon = nextOfCurrent[0];
       let next2: Polygon = nextOfCurrent[1];
 
-      let next1InnerPoints = getWeight(next1, previous, dt, pointsCopy);
-      let next2InnerPoints = getWeight(next2, previous, dt, pointsCopy);
+      let next1InnerPoints = getWeight(next1, current[0], dt, pointsCopy);
+      let next2InnerPoints = getWeight(next2, current[0], dt, pointsCopy);
 
       // get the segments of the current triangle with the next triangles in the dual tree
-      let segs: Segment[] | null = dt.getNextSegment(current[0]);
+      let segs: Segment[] | null = dt.getNextSegment(current[0], previous);
       if (segs === null)
         return null;
 
@@ -139,7 +138,7 @@ function computeSplittingSegment(dt: DualTree, points: Point[]): Segment | null 
 
     // Condition 1 - Valid Diagonal Case
     if (totalWeight >= points.length/3) {
-      let segs: Segment[] | null = dt.getNextSegment(current[0]);
+      let segs: Segment[] | null = dt.getNextSegment(current[0],previous);
 
       // you only have one neighbour
       if (segs !== null && segs.length === 1)
