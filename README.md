@@ -144,9 +144,9 @@ Since the dual graph of the triangulation of a simple polygon forms an acyclic g
 According to lemma 2 specified in [7], in such a triangulation there must exist one of the following; 
 
 1.  A diagonal that splits the polygon into two sub-polygons, P1 and P2, such that:
-$\#Points(P_1) <= \#Points(P_2) <= 2/3\#Points(P)$ .
+#Points(P_1) <= Points(P_2) <= 2/3Points(P).
 2.  A triangle T such that:
-$\#Points(T) > 2/3\#Points(P)$.
+#Points(T) > 2/3#Points(P).
 3.  A triangle T that partitions P into three pieces with each piece having less than one third of all the points in P.
 
 As shown in the author’s proof this is equivalent to checking for 3 conditions whenever a triangle T is visited:
