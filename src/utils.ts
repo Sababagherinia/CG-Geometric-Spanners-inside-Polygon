@@ -21,8 +21,14 @@ function isInsideTriangle(p: Point, q: Point, r: Point, a: Point): boolean {
     let det2 = computeDet(q, r, a);
     let det3 = computeDet(r, p, a);
 
+    let seg1: Segment = new Segment(p, q);
+    let seg2: Segment = new Segment(q, r);
+    let seg3: Segment = new Segment(r, p);
+
+    let onEdge: boolean = seg1.isOnSegment(a) || seg2.isOnSegment(a) || seg3.isOnSegment(a);
+
     return (
-      (det1 > 0 && det2 > 0 && det3 > 0) || (det1 < 0 && det2 < 0 && det3 < 0)
+      (det1 > 0 && det2 > 0 && det3 > 0) || (det1 < 0 && det2 < 0 && det3 < 0) || onEdge
     );
 }
 

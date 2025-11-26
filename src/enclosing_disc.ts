@@ -1,6 +1,6 @@
 // Welzl's algorithm for Minimum Enclosing Disc running in expected O(n) time
-import { Point} from "./classes";
-import { eucl_distance } from "./utils";
+import { Point} from "./classes.js";
+import { eucl_distance } from "./utils.js";
 
 // A small epsilon for floating point comparisons
 const EPSILON = 1e-9;

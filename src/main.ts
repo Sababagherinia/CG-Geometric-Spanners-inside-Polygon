@@ -1,9 +1,9 @@
-import { DualTree, Graph, Point, Polygon, Segment } from "./classes";
-import { splitPolygon, triangulate } from "./utils";
-import { computeSplittingSegment, unoptimizedRotation } from "./vertical_segment";
-import { geodesic_distance } from "./geo_distance";
-import { computeSSPD, Pair } from "./sspd";
-import { enclosingDiscRadius } from "./enclosing_disc";
+import { DualTree, Point, Polygon, Segment } from "./classes.js";
+import { splitPolygon, triangulate } from "./utils.js";
+import { computeSplittingSegment, unoptimizedRotation } from "./vertical_segment.js";
+import { geodesic_distance } from "./geo_distance.js";
+import { computeSSPD, Pair } from "./sspd.js";
+import { enclosingDiscRadius } from "./enclosing_disc.js";
 
 function projectPointToVerticalLineGeodesic(p: Point, xL: number, polygon: Polygon, yMin: number, yMax: number): [Point,number] {
     const gr = (Math.sqrt(5) - 1) / 2; // golden ratio constant
@@ -90,7 +90,7 @@ function constructSpanner(polygon: Polygon, points: Point[], epsilon: number): S
 
     if (epsilon < 0) {
         console.log("Epsilon cannot be less than 0...");
-        return null;
+        return [];
     }
 
     let edges: Segment[] = [];
@@ -102,11 +102,11 @@ function constructSpanner(polygon: Polygon, points: Point[], epsilon: number): S
     let dt: DualTree = new DualTree(triangles);
     let ss: Segment | null = computeSplittingSegment(dt,points);
     if (ss === null)
-        return null;
+        return [];
 
     // computing the rotation so that ss becomes vertical
-    let [newSS, newPolyPoints, newPoints] = unoptimizedRotation(ss, polygon.points, points);
-    let newPoly: Polygon = new Polygon(newPolyPoints);
+    let [newSS, newPoly, newPoints] = unoptimizedRotation(ss, polygon, points);
+    // let newPoly: Polygon = new Polygon(newPolyPoints);
 
     // geodesic distance
     let projectionsMap: Map<Point,[Point,number]> = new Map<Point,[Point,number]>();
@@ -142,11 +142,13 @@ function constructSpanner(polygon: Polygon, points: Point[], epsilon: number): S
     }
 
     // split the polygon according your your splitting segment
-    let polygons: Polygon[] = splitPolygon(newPoly, newSS); 
-    let edgesOne: Segment[] = constructSpanner(polygons[0], points, epsilon);
-    let edgesTwo: Segment[] = constructSpanner(polygons[1], points, epsilon);
-    let edgesOneConcat: Segment[] = edgesOne.concat(edgesTwo);
-    let edgesConcat: Segment[] = edges.concat(edgesOneConcat);
+    // let polygons: Polygon[] = splitPolygon(newPoly, newSS); 
+    // let edgesOne: Segment[] = constructSpanner(polygons[0], points, epsilon);
+    // let edgesTwo: Segment[] = constructSpanner(polygons[1], points, epsilon);
+    // let edgesOneConcat: Segment[] = edgesOne.concat(edgesTwo);
+    // let edgesConcat: Segment[] = edges.concat(edgesOneConcat);
 
-    return edgesConcat;
+    return edges;
 }
+
+export {constructSpanner};

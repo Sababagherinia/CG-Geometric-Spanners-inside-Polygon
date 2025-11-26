@@ -1,5 +1,5 @@
-import { Point, Polygon } from "./classes";
-import { triangulate, isInsideTriangle, computeDet, eucl_distance } from "./utils";
+import { Point, Polygon } from "./classes.js";
+import { triangulate, isInsideTriangle, computeDet, eucl_distance } from "./utils.js";
 
 //================================================
 
