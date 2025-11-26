@@ -74,29 +74,25 @@ function computeSplittingSegment(dt: DualTree, points: Point[]): Segment | null 
   let pointsCopy: Point[] = points.slice(); // copy of the points triangle
   // let prevWeight: number = 0; // weight of the previous polygon
   let totalWeight = 0; // weight of all the thus-far visited triangles
+  let current: Polygon = dt.getNext(previous)[0];
 
   while(true) {
-    // get the next triangle in the dual tree
-    let current: Polygon[] = dt.getNext(previous);
-    if (current.length === 0) {
-      return null;
-    }
 
     // get the points inside the triangle
-    let innerPoints: Point[] = getInnerPoints(current[0], pointsCopy);
+    let innerPoints: Point[] = getInnerPoints(current, pointsCopy);
     let weight: number = innerPoints.length;
     totalWeight += weight;
 
-    let nextOfCurrent = dt.peekNext(current[0], previous);
+    let nextOfCurrent = dt.peekNext(current, previous);
     if (nextOfCurrent.length === 2) { // current triangle has two children in the dual tree
       let next1: Polygon = nextOfCurrent[0];
       let next2: Polygon = nextOfCurrent[1];
 
-      let next1InnerPoints = getWeight(next1, current[0], dt, pointsCopy);
-      let next2InnerPoints = getWeight(next2, current[0], dt, pointsCopy);
+      let next1InnerPoints = getWeight(next1, current, dt, pointsCopy);
+      let next2InnerPoints = getWeight(next2, current, dt, pointsCopy);
 
       // get the segments of the current triangle with the next triangles in the dual tree
-      let segs: Segment[] | null = dt.getNextSegment(current[0], previous);
+      let segs: Segment[] | null = dt.getNextSegment(current, previous);
       if (segs === null)
         return null;
 
@@ -107,6 +103,19 @@ function computeSplittingSegment(dt: DualTree, points: Point[]): Segment | null 
       // return the next segment of the current that corresponds to nh2
       if (next2InnerPoints.length >= points.length/3 && next2InnerPoints.length <= 2/3*points.length)
         return segs[1];
+
+      //TODO - if a subpolygon has >2/3 of all the points that you have to process it
+      if (next1InnerPoints.length > 2/3*points.length) {
+        previous = current;
+        current = next1;
+        continue;
+      }
+
+      if (next2InnerPoints.length > 2/3*points.length) {
+        previous = current;
+        current = next2;
+        continue;
+      }
 
       // get the common point between the two segments of the next two triangles and the opposite segment from that common point
       let commonPoint: Point = !isEqual(segs[0].src, segs[1].src) && !isEqual(segs[0].src, segs[1].dest) ? segs[0].src : segs[0].dest;
@@ -138,7 +147,7 @@ function computeSplittingSegment(dt: DualTree, points: Point[]): Segment | null 
 
     // Condition 1 - Valid Diagonal Case
     if (totalWeight >= points.length/3) {
-      let segs: Segment[] | null = dt.getNextSegment(current[0],previous);
+      let segs: Segment[] | null = dt.getNextSegment(current,previous);
 
       // you only have one neighbour
       if (segs !== null && segs.length === 1)
@@ -151,7 +160,7 @@ function computeSplittingSegment(dt: DualTree, points: Point[]): Segment | null 
       return new Segment(new Point(x,-999), new Point(x,999));
     }
 
-    previous = current[0];
+    previous = current;
     continue;
   }
 }
