@@ -56,12 +56,15 @@ function getWeight(polygon: Polygon, previous: Polygon | null, dt: DualTree, poi
     return innerPoints;
 
   if (nhs.length === 1) {
-    return innerPoints.concat(getWeight(nhs[0], polygon, dt, points));
+    let restPoints = getWeight(nhs[0], polygon, dt, points);
+    return innerPoints.concat(restPoints);
   }
 
   if (nhs.length === 2) {
-    let new_inner_points: Point[] = innerPoints.concat(getWeight(nhs[0], polygon, dt, points));
-    return new_inner_points.concat(getWeight(nhs[0], polygon, dt, points));
+    let rest_inner_points: Point[] = getWeight(nhs[0], polygon, dt, points);
+    let other_rest_inner_points: Point[] = getWeight(nhs[1], polygon, dt, points);
+    let rest_points = rest_inner_points.concat(other_rest_inner_points);
+    return innerPoints.concat(rest_points);
   }
 
   return [];
@@ -131,14 +134,14 @@ function computeSplittingSegment(dt: DualTree, points: Point[]): Segment | null 
       // going clockwise you are making next1 subpolygon fill up to 1/3 of the points
       let toThird: number = 0;
       if (isEqual(innerPointsWithVertices[0], otherPointOne)) {
-        toThird = points.length/3 - next1InnerPoints.length;
+        toThird = Math.ceil(points.length/3 - next1InnerPoints.length);
       } else {
-        toThird = points.length/3 - next2InnerPoints.length;
+        toThird = Math.ceil(points.length/3 - next2InnerPoints.length);
       }
 
       // get the middle point between the toThird vertex and the next one in the inner points and just draw a segment through it from the commonPoint
-      let middleX: number = (innerPointsWithVertices[toThird].x + innerPointsWithVertices[toThird+1].x)/2;
-      let middleY: number = (innerPointsWithVertices[toThird].y + innerPointsWithVertices[toThird+1].y)/2;
+      let middleX: number = (innerPointsWithVertices[toThird].x + 0.001);
+      let middleY: number = (innerPointsWithVertices[toThird].y + 0.001);
       let segment: Segment = new Segment(commonPoint, new Point(middleX,middleY));
       let longY: number = segment.computeY(-999);
       // let intersectionPoint: Point = getIntersectionPoint(oppositeSegment,segment);
@@ -161,6 +164,7 @@ function computeSplittingSegment(dt: DualTree, points: Point[]): Segment | null 
     }
 
     previous = current;
+    current = nextOfCurrent[0];
     continue;
   }
 }
