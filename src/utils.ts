@@ -198,22 +198,50 @@ function getHalfPoint(segment: Segment): Point {
 }
 
 
-// function split(polygon: Polygon, src: number, dest: number): Polygon[] {
-//     let start: number = src;
-//     let end: number = dest;
+function splitPolygon(polygon: Polygon, verticalSegment: Segment): Polygon[] {
+    let src = verticalSegment.src;
+    let dest = verticalSegment.dest;
 
-//     let right_points: Point[] = wrapAroundSlice(polygon.points, start, end);
-//     let right_segs: Segment[] = wrapAroundSlice(polygon.segments, start, end - 1);
-//     right_segs.push(new Segment(polygon.points[end], polygon.points[start]));
+    let segmentSrcIdx: number = polygon.segments.findIndex((s) => s.isOnSegment(src));
+    let segmentDestIdx: number = polygon.segments.findIndex((s) => s.isOnSegment(dest));
 
-//     let left_points = wrapAroundSlice(polygon.points, end, start);
-//     let left_segs: Segment[] = wrapAroundSlice(polygon.segments, end, start - 1);
-//     left_segs.push(new Segment(polygon.points[start], polygon.points[end]));
+    // bring segmentDestIdx on the same side of segmentSrcIdx
+    if (polygon.points[segmentDestIdx].x < src.x && polygon.points[segmentSrcIdx].x > src.x) {
+      if (polygon.points[(segmentDestIdx+1) % polygon.size()].x > src.x)
+        segmentDestIdx++;
+      else 
+        segmentDestIdx--;
+    } else if (polygon.points[segmentDestIdx].x > src.x && polygon.points[segmentSrcIdx].x < src.x) {
+      if (polygon.points[(segmentDestIdx+1) % polygon.size()].x < src.x)
+        segmentDestIdx++;
+      else 
+        segmentDestIdx--;
+    }
 
-//     return [
-//       new Polygon(left_points, left_segs),
-//       new Polygon(right_points, right_segs),
-//     ];
-// }
+    let right_points: Point[] = wrapAroundSlice(polygon.points, segmentSrcIdx, segmentDestIdx);
 
-export {compareFn, wrapAroundSlice, getMin, pointEquality, isInsideTriangle, computeDet, binarySearch, eucl_distance, getIntersectionPoint, lessThan, manhattan_distance, triangulate, isEqualPoly, getHalfPoint};
+    let otherSegmentSrcIdx = 0;
+    let otherSegmentDestIdx = 0;
+    if (polygon.points[segmentDestIdx].x < src.x && polygon.points[(segmentDestIdx+1) % polygon.size()].x > src.x) {
+      otherSegmentDestIdx = segmentDestIdx + 1;
+      otherSegmentSrcIdx = segmentSrcIdx - 1;
+    } else if (polygon.points[segmentDestIdx].x < src.x && polygon.points[(segmentDestIdx+1) % polygon.size()].x > src.x) {
+      otherSegmentDestIdx = segmentDestIdx - 1;
+      otherSegmentSrcIdx = segmentSrcIdx + 1;
+    } else if (polygon.points[segmentDestIdx].x > src.x && polygon.points[(segmentDestIdx+1) % polygon.size()].x > src.x) {
+      otherSegmentDestIdx = segmentDestIdx - 1;
+      otherSegmentSrcIdx = segmentSrcIdx + 1;
+    } else if (polygon.points[segmentDestIdx].x > src.x && polygon.points[(segmentDestIdx+1) % polygon.size()].x < src.x) {
+      otherSegmentDestIdx = segmentDestIdx + 1;
+      otherSegmentSrcIdx = segmentSrcIdx - 1;
+    }
+
+    let left_points = wrapAroundSlice(polygon.points, otherSegmentSrcIdx, otherSegmentDestIdx);
+
+    return [
+      new Polygon(left_points),
+      new Polygon(right_points),
+    ];
+}
+
+export {compareFn, wrapAroundSlice, getMin, pointEquality, isInsideTriangle, computeDet, binarySearch, eucl_distance, getIntersectionPoint, lessThan, manhattan_distance, triangulate, isEqualPoly, getHalfPoint, splitPolygon};

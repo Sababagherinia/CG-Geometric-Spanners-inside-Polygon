@@ -54,3 +54,5 @@ if (isSemiSeparated(clusterA, clusterB, s)) {
 // Return the list of s-SSPD pairs
     return pairs;
 }
+
+export {Pair};
