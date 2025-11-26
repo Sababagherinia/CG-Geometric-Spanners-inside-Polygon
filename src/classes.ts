@@ -163,7 +163,7 @@ class DualTree {
         if (previous === null)
             return neighbours;
 
-        let next_neighbours = neighbours.filter((pl) => pl != this.prevPoly);
+        let next_neighbours = neighbours.filter((pl) => pl != previous);
         return next_neighbours;
     }
 
