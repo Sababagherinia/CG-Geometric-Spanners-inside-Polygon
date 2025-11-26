@@ -203,7 +203,7 @@ function computeSplittingSegment(dt: DualTree, points: Point[]): Segment | null 
 //   return pointLocations;
 // }
 
-function unoptimizedRotation(splittingSegment: Segment, polygon: Point[], points: Point[]): [Segment, Point[], Point[]] {
+function unoptimizedRotation(splittingSegment: Segment, polygon: Polygon, points: Point[]): [Segment, Polygon, Point[]] {
   const theta = Math.atan2(splittingSegment.dest.y - splittingSegment.src.y, splittingSegment.dest.x - splittingSegment.src.x);
 
   const M = {
@@ -226,10 +226,12 @@ function unoptimizedRotation(splittingSegment: Segment, polygon: Point[], points
   };
 
   let newSS: Segment = new Segment(rotatePoint(splittingSegment.src), rotatePoint(splittingSegment.dest));
-  let newPoly: Point[] =  polygon.map(rotatePoint);
+  let newPolyPoints: Point[] =  polygon.points.map(rotatePoint);
+  let newPolySegments: Segment[] = polygon.segments.map((s) => new Segment(rotatePoint(s.src), rotatePoint(s.dest)));
+  let newPolygon: Polygon = new Polygon(newPolyPoints, newPolySegments);
   let newPoints: Point[] = points.map(rotatePoint);
 
-  return [newSS, newPoly, newPoints];
+  return [newSS, newPolygon, newPoints];
 }
 
 /**

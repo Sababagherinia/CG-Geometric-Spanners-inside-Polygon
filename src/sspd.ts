@@ -2,9 +2,9 @@
 // Callahan–Kosaraju SSPD algorithm adaptation
 // Still in progress - making sure it works in all directions and for any number of points
 
-import {Point} from "./classes";
-import { minimumEnclosingDisc} from "./enclosing_disc";
-import { eucl_distance } from "./utils";
+import {Point} from "./classes.js";
+import { minimumEnclosingDisc} from "./enclosing_disc.js";
+import { eucl_distance } from "./utils.js";
 
 type Pointset = Point[];
 type Pair = [Pointset, Pointset];
