@@ -10,6 +10,7 @@ var innerPoints: Point[] = [];
 var button: any;
 var buttonSL: any;
 var splittingSegment: Segment | null = null;
+var trs: Point[][] = [];
 
 function setup() {
   createCanvas(400, 400);
@@ -23,6 +24,7 @@ function setup() {
     innerPoints = [];
     splittingSegment = null;
     polygonDone = false;
+    trs = [];
     clear();
   });
 
@@ -52,6 +54,18 @@ function draw() {
     stroke('magenta');
     strokeWeight(5);
     line(splittingSegment.src.x,splittingSegment.src.y,splittingSegment.dest.x,splittingSegment.dest.y);
+    stroke('black');
+  }
+
+  if (trs.length !== 0) {
+    for (let i = 0; i < trs.length; i++) {
+      let tr: Point[] = trs[i];
+      stroke(2);
+      line(tr[0].x,tr[0].y,tr[1].x,tr[1].y);
+      line(tr[1].x,tr[1].y,tr[2].x,tr[2].y);
+      line(tr[2].x,tr[2].y,tr[0].x,tr[0].y);
+      stroke(5);
+    }
   }
 }
 
@@ -88,12 +102,14 @@ function windowResized() {
 function getSplittingLine() {
   points.sort((p,q) => computeDet(p,points[0],q));
   let triangles: Point[][] = triangulate(points);
+  trs = triangles;
 
   console.log("Creating the Dual Tree...");
   let dt: DualTree = new DualTree(triangles);
 
   console.log("Computing the splitting line segment...");
   let ss: Segment | null = computeSplittingSegment(dt, innerPoints);
+  console.log("Done...");
 
   if (ss === null)
     console.log("The splitting segment is null - check the code...");
