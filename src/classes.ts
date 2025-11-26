@@ -179,8 +179,8 @@ class DualTree {
         return common;
     }
 
-    getNextSegment(current: Polygon): Segment[] | null {
-        let nextNhs: Polygon[] = this.peekNext(current);
+    getNextSegment(current: Polygon, previous: Polygon | null): Segment[] | null {
+        let nextNhs: Polygon[] = this.peekNext(current, previous);
 
         // last polygon of the tree
         if (nextNhs.length === 0) {
