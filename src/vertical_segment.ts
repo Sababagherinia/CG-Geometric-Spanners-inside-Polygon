@@ -203,6 +203,35 @@ function computeSplittingSegment(dt: DualTree, points: Point[]): Segment | null 
 //   return pointLocations;
 // }
 
+function unoptimizedRotation(splittingSegment: Segment, polygon: Point[], points: Point[]): [Segment, Point[], Point[]] {
+  const theta = Math.atan2(splittingSegment.dest.y - splittingSegment.src.y, splittingSegment.dest.x - splittingSegment.src.x);
+
+  const M = {
+        x: (splittingSegment.src.x + splittingSegment.dest.x) / 2,
+        y: (splittingSegment.src.y + splittingSegment.dest.y) / 2
+    };
+
+  const alpha = Math.PI / 2 - theta;
+  const cosA = Math.cos(alpha);
+  const sinA = Math.sin(alpha);
+
+  const rotatePoint = (P: Point) => {
+        const dx = P.x - M.x;
+        const dy = P.y - M.y;
+
+        return {
+            x: M.x + dx * cosA - dy * sinA,
+            y: M.x + dx * sinA + dy * cosA
+        };
+  };
+
+  let newSS: Segment = new Segment(rotatePoint(splittingSegment.src), rotatePoint(splittingSegment.dest));
+  let newPoly: Point[] =  polygon.map(rotatePoint);
+  let newPoints: Point[] = points.map(rotatePoint);
+
+  return [newSS, newPoly, newPoints];
+}
+
 /**
  * 
  * @param polygon Polygon whose vertical line segment we need to compute
@@ -216,4 +245,4 @@ function computeSplittingSegmentWrapper(polygon: Polygon, points: Point[]): Segm
   return splittingSegment;
 }
 
-export {computeSplittingSegmentWrapper, computeSplittingSegment};
+export {computeSplittingSegmentWrapper, computeSplittingSegment, unoptimizedRotation};

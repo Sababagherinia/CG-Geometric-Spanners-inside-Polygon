@@ -1,7 +1,7 @@
 /// <reference types="p5/global" />
 import { DualTree, Point, Segment } from "./classes.js";
 import { computeDet, triangulate } from "./utils.js";
-import { computeSplittingSegment } from "./vertical_segment.js";
+import { computeSplittingSegment, unoptimizedRotation } from "./vertical_segment.js";
 
 var points: Point[] = [];
 var segments: Segment[] = [];
@@ -98,6 +98,12 @@ function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
 }
 
+function connectPoints(points: Point[]) {
+  for (let i = 0; i <= points.length; i++) {
+    segments.push(new Segment(points[i],points[(i+1) % points.length]));
+  }
+}
+
 function getSplittingLine() {
   // points.sort((p,q) => computeDet(p,points[0],q));
   let triangles: Point[][] = triangulate(points);
@@ -110,9 +116,17 @@ function getSplittingLine() {
   let ss: Segment | null = computeSplittingSegment(dt, innerPoints);
   console.log("Done...");
 
-  if (ss === null)
+  if (ss === null) {
     console.log("The splitting segment is null - check the code...");
-  splittingSegment = ss;
+    return;
+  }
+
+  let [newSS, newPoints, newInnerPoints] = unoptimizedRotation(ss, points, innerPoints);
+  points = newPoints;
+  innerPoints = newInnerPoints;
+  splittingSegment = newSS;
+  segments = [];
+  connectPoints(points);
 }
 
 // Expose functions globally so p5 can find them
