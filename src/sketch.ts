@@ -51,10 +51,9 @@ function draw() {
   }
 
   if (splittingSegment !== null) {
-    stroke('magenta');
+    trs = [];
     strokeWeight(5);
     line(splittingSegment.src.x,splittingSegment.src.y,splittingSegment.dest.x,splittingSegment.dest.y);
-    stroke('black');
   }
 
   if (trs.length !== 0) {
@@ -100,7 +99,7 @@ function windowResized() {
 }
 
 function getSplittingLine() {
-  points.sort((p,q) => computeDet(p,points[0],q));
+  // points.sort((p,q) => computeDet(p,points[0],q));
   let triangles: Point[][] = triangulate(points);
   trs = triangles;
 
