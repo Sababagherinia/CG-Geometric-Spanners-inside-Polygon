@@ -1,187 +1,105 @@
-// // algorithm to compute s-semi-separated pairs of clusters (s-SSPD) in a set of 2D points
-// // Callahan–Kosaraju SSPD algorithm adaptation
-// // Still in progress - making sure it works in all directions and for any number of points
+// algorithm to compute s-semi-separated pairs of clusters (s-SSPD) in a set of 2D points
+// Callahan–Kosaraju SSPD algorithm adaptation
+// Still in progress - making sure it works in all directions and for any number of points
 
-import { Point } from "./classes.js";
-import { minimumEnclosingDisc } from "./enclosing_disc.js";
+import {Point} from "./classes.js";
+import { minimumEnclosingDisc} from "./enclosing_disc.js";
 import { eucl_distance } from "./utils.js";
 
-export type Pointset = Point[];
-export type Pair = [Pointset, Pointset];
+type Pointset = Point[];
+type Pair = [Pointset, Pointset];
 
-type Disc = {
-    center: Point;
-    radius: number;
-};
 
-type ClusterNode = {
-    points: Pointset;
-    disc: Disc;
-    left: ClusterNode | null;
-    right: ClusterNode | null;
-};
+//  Check if two clusters (A, B) are s-semi-separated
+function isSemiSeparated(A: Pointset, B: Pointset, s: number): boolean {
+    const discA = minimumEnclosingDisc(A);
+    const discB = minimumEnclosingDisc(B);
 
-// ---- Helpers --------------------------------------------------------------
+    // Compute distance between centers
+    const centerDist = eucl_distance(discA.center, discB.center);
+    const minRadius = Math.min(discA.radius, discB.radius);
+    // if either cluster has zero radius, they cannot be semi-separated
+    if (minRadius === 0) return false;
 
-/**
- * Build a fair-split binary tree over the point set.
- * Each node stores its minimum enclosing disc.
- */
-function buildClusterTree(points: Pointset, minClusterSize: number): ClusterNode {
-    // Always work on a copy to avoid mutating the caller’s array
-    const pts = points.slice();
-
-    const disc = minimumEnclosingDisc(pts); // assumes { center: Point, radius: number }
-
-    // Stop splitting if cluster is small
-    if (pts.length <= minClusterSize) {
-        return {
-            points: pts,
-            disc,
-            left: null,
-            right: null,
-        };
-    }
-
-    // Choose split dimension by larger spread (x vs y)
-    let minX = pts[0].x, maxX = pts[0].x;
-    let minY = pts[0].y, maxY = pts[0].y;
-    for (const p of pts) {
-        if (p.x < minX) minX = p.x;
-        if (p.x > maxX) maxX = p.x;
-        if (p.y < minY) minY = p.y;
-        if (p.y > maxY) maxY = p.y;
-    }
-    const spanX = maxX - minX;
-    const spanY = maxY - minY;
-
-    if (spanX >= spanY) {
-        pts.sort((a, b) => a.x - b.x);
-    } else {
-        pts.sort((a, b) => a.y - b.y);
-    }
-
-    const mid = Math.floor(pts.length / 2);
-    const leftPts = pts.slice(0, mid);
-    const rightPts = pts.slice(mid);
-
-    // If one side would be empty (shouldn’t happen often), fall back to leaf
-    if (leftPts.length === 0 || rightPts.length === 0) {
-        return {
-            points: pts,
-            disc,
-            left: null,
-            right: null,
-        };
-    }
-
-    const left = buildClusterTree(leftPts, minClusterSize);
-    const right = buildClusterTree(rightPts, minClusterSize);
-
-    return {
-        points: pts,
-        disc,
-        left,
-        right,
-    };
+    // Check s-semi-separation condition
+    // Semi-separation condition: ||cA - cB|| >= s * min(rA, rB)
+    // where cA, cB are disc centers and rA, rB are their radius
+    return centerDist >= s * minRadius;
 }
 
-/**
- * Check if two clusters (A,B) are s-semi-separated.
- *
- *   dist(A,B) >= s * min(radius(A), radius(B)),
- * where dist(A,B) is the distance between their minimum enclosing discs.
- */
-function isSemiSeparatedNode(A: ClusterNode, B: ClusterNode, s: number): boolean {
-    const cA = A.disc.center;
-    const cB = B.disc.center;
-    const rA = A.disc.radius;
-    const rB = B.disc.radius;
-
-    const centerDist = eucl_distance(cA, cB);
-    const discDist = centerDist - (rA + rB); // distance between discs
-    const minRadius = Math.min(rA, rB);
-
-    // For singleton clusters radius can be 0; condition becomes discDist >= 0, which is fine.
-    return discDist >= s * minRadius;
-}
-
-function isLeaf(node: ClusterNode): boolean {
-    return node.left === null && node.right === null;
-}
-
-// ---- Main SSPD generation -------------------------------------------------
-
-/**
- * Recursively generate s-SSPD pairs for a pair of cluster-tree nodes.
- *
- * This is the standard Callahan–Kosaraju pattern:
- *   - If (u,v) is s-semi-separated: output (u.points, v.points).
- *   - Else split the larger node and recurse.
- */
-function generateSSPDPairs(
-    u: ClusterNode,
-    v: ClusterNode,
-    s: number,
-    result: Pair[]
-): void {
-    // We never need a pair of a cluster with itself that contains a single point.
-    if (u === v && u.points.length <= 1) {
-        return;
-    }
-
-    // If they are semi-separated, we’re done.
-    if (isSemiSeparatedNode(u, v, s)) {
-        result.push([u.points, v.points]);
-        return;
-    }
-
-    const uLeaf = isLeaf(u);
-    const vLeaf = isLeaf(v);
-
-    // If both are leaves and still not semi-separated, we must stop:
-    // accept this pair anyway to terminate (only happens when minClusterSize > 1).
-    if (uLeaf && vLeaf) {
-        result.push([u.points, v.points]);
-        return;
-    }
-
-    // Decide which node to split:
-    // heuristic: split the one with larger radius, then by size.
-    const rU = u.disc.radius;
-    const rV = v.disc.radius;
-
-    if ((!uLeaf && (rU >= rV || vLeaf))) {
-        // Split u
-        // (left/right are non-null because !uLeaf)
-        generateSSPDPairs(u.left!, v, s, result);
-        generateSSPDPairs(u.right!, v, s, result);
-    } else {
-        // Split v
-        generateSSPDPairs(u, v.left!, s, result);
-        generateSSPDPairs(u, v.right!, s, result);
-    }
-}
-
-export function computeSSPD(
-    points: Pointset,
-    EPSILON: number,
-    minClusterSize: number = 1
-): Pair[] {
-    if (points.length === 0) return [];
-
-    const s = 4 / EPSILON;
-
-    // Build fair-split tree
-    const root = buildClusterTree(points, minClusterSize);
-
-    // If no children, no pairs
-    if (!root.left || !root.right) return [];
-
+// Helper function to compute pairs between two clusters
+function computePairsBetween(A: Pointset, B: Pointset, s: number): Pair[] {
     const pairs: Pair[] = [];
+    
+    // Base case: if either cluster is empty, no pairs
+    if (A.length === 0 || B.length === 0) {
+        return pairs;
+    }
+    
+    // Check if the clusters are s-semi-separated
+    if (isSemiSeparated(A, B, s)) {
+        // They are separated - report this pair
+        pairs.push([A, B]);
+    } else {
+        // Not separated: split the larger cluster and recurse
+        if (A.length >= B.length && A.length > 1) {
+            // Split A into A1 and A2, keeping B intact
+            const midA = Math.floor(A.length / 2);
+            const A1 = A.slice(0, midA);
+            const A2 = A.slice(midA);
+            
+            // Find pairs between A1-B and A2-B
+            pairs.push(...computePairsBetween(A1, B, s));
+            pairs.push(...computePairsBetween(A2, B, s));
+        } else if (B.length > 1) {
+            // Split B into B1 and B2, keeping A intact
+            const midB = Math.floor(B.length / 2);
+            const B1 = B.slice(0, midB);
+            const B2 = B.slice(midB);
+            
+            // Find pairs between A-B1 and A-B2
+            pairs.push(...computePairsBetween(A, B1, s));
+            pairs.push(...computePairsBetween(A, B2, s));
+        }
+        // If both have size 1 and not separated, no pair is added
+    }
+    
+    return pairs;
+}
 
-    // Only start with the two *different* children
-    generateSSPDPairs(root.left, root.right, s, pairs);
+//  Recursively partition points and compute s-SSPD pairs
+export function computeSSPD(points: Pointset, EPSILON: number, minClusterSize: number = 1, isSorted: boolean = false): Pair[] {
+    const s = 4 / EPSILON; // recommended by theory
+    
+    // Sort points by y-coordinate on first call
+    if (!isSorted) {
+        points.sort((a, b) => a.y - b.y);
+    }
+    
+    // Base case: if too few points, return empty
+    if (points.length < 2) {
+        return [];
+    }
+    
+    const pairs: Pair[] = [];
+    
+    // Split points into two halves
+    const mid = Math.floor(points.length / 2);
+    const clusterA = points.slice(0, mid);
+    const clusterB = points.slice(mid);
+
+    // Find pairs between the two halves
+    pairs.push(...computePairsBetween(clusterA, clusterB, s));
+    
+    // Recursively find pairs within each half (only if they have >= 2 points)
+    if (clusterA.length >= 2) {
+        pairs.push(...computeSSPD(clusterA, EPSILON, minClusterSize, true));
+    }
+    if (clusterB.length >= 2) {
+        pairs.push(...computeSSPD(clusterB, EPSILON, minClusterSize, true));
+    }
 
     return pairs;
 }
+
+export { Pair };

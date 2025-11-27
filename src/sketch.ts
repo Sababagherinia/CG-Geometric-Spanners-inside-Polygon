@@ -18,7 +18,7 @@ var spannerSegments: Segment[] = [];
 var spannerConstructed: boolean = false;
 
 function setup() {
-  createCanvas(400, 400);
+  createCanvas(windowWidth, windowHeight);
   fill(0);
   textSize(32);
   button = createButton('Clear');
@@ -153,7 +153,7 @@ function getSplittingLine() {
 
 function createSpannerWrapper() {
   let polygon: Polygon = new Polygon(points);
-  let segments: Segment[] = constructSpanner(polygon, innerPoints, 10)
+  let segments: Segment[] = constructSpanner(polygon, innerPoints, 2)
   spannerSegments = segments;
   console.log("Spanner length is 0");
   spannerConstructed = true && spannerSegments.length > 0;
@@ -175,4 +175,3 @@ function createSpannerWrapper() {
 (window as any).draw = draw;
 (window as any).mousePressed = mousePressed;
 (window as any).windowResized = windowResized;
-
