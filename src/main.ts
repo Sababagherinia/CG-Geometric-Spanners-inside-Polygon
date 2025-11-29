@@ -1,9 +1,9 @@
 import { DualTree, Point, Polygon, Segment } from "./classes.js";
-import { splitPolygon, triangulate, eucl_distance} from "./utils.js";
+import { triangulate } from "./utils.js";
 import { computeSplittingSegment, unoptimizedRotation } from "./vertical_segment.js";
 import { geodesic_distance } from "./geo_distance.js";
 import { computeSSPD, Pair } from "./sspd.js";
-import { enclosingDiscRadius, minimumEnclosingDisc} from "./enclosing_disc.js";
+import { enclosingDiscRadius } from "./enclosing_disc.js";
 
 function projectPointToVerticalLineGeodesic(p: Point, xL: number, polygon: Polygon, yMin: number, yMax: number): [Point,number] {
     const gr = (Math.sqrt(5) - 1) / 2; // golden ratio constant
@@ -86,23 +86,31 @@ function unionOfProjections(inverseProjectionMap: Map<Point,[Point,number]>, A: 
     return union;
 }
 
-function constructSpanner(polygon: Polygon, points: Point[], epsilon: number): Segment[] {
+function constructSpanner(polygon: Polygon, points: Point[], epsilon: number):{
+    edges: Segment[],
+    splittingSegment: Segment | null,
+    projections: Point[],
+    sspd: Pair[],
+    rotatedPolygon: Polygon,
+    rotatedPoints: Point[],
+    representativePoints: Point[]
+} {
 
     if (epsilon < 0) {
         console.log("Epsilon cannot be less than 0...");
-        return [];
+        return { edges: [], splittingSegment: null, projections: [], sspd: [], rotatedPolygon: polygon, rotatedPoints: points, representativePoints: [] };
     }
 
     let edges: Segment[] = [];
     if (polygon.points.length < 4)
-        return edges;
+        return { edges: [], splittingSegment: null, projections: [], sspd: [], rotatedPolygon: polygon, rotatedPoints: points, representativePoints: [] };
 
     // computing the splitting line segment
     let triangles: Point[][] = triangulate(polygon.points);
     let dt: DualTree = new DualTree(triangles);
     let ss: Segment | null = computeSplittingSegment(dt,points);
     if (ss === null)
-        return [];
+        return { edges: [], splittingSegment: null, projections: [], sspd: [], rotatedPolygon: polygon, rotatedPoints: points, representativePoints: [] };
 
     // computing the rotation so that ss becomes vertical
     let [newSS, newPoly, newPoints] = unoptimizedRotation(ss, polygon, points);
@@ -128,10 +136,13 @@ function constructSpanner(polygon: Polygon, points: Point[], epsilon: number): S
 
     // compute s-SSPD
     let sspd: Pair[] = computeSSPD(projections, epsilon, 1, false);
+    console.log("the projections:");
+    console.log(projections);
     console.log(`Number of s-semi-separated pairs: ${sspd.length}`);
     console.log(`Epsilon value: ${epsilon}`);
 
     // form edges
+    let representatives: Point[] = [];
     for (let i = 0; i < sspd.length; i++) {
         let pair: Pair = sspd[i];
         const A: Point[] = pair[0];
@@ -183,6 +194,8 @@ function constructSpanner(polygon: Polygon, points: Point[], epsilon: number): S
             }                                                
         }
 
+        representatives.push(representative);
+
         // union = all original points whose projection lies in A ∪ B
         const union: Point[] = [];                          
         for (const pPrime of [...A, ...B]) {         
@@ -204,7 +217,15 @@ function constructSpanner(polygon: Polygon, points: Point[], epsilon: number): S
     // let edgesOneConcat: Segment[] = edgesOne.concat(edgesTwo);
     // let edgesConcat: Segment[] = edges.concat(edgesOneConcat);
 
-    return edges;
+    return {
+        edges: edges,
+        splittingSegment: newSS,
+        projections: projections,
+        sspd: sspd,
+        rotatedPolygon: newPoly,
+        rotatedPoints: newPoints,
+        representativePoints: representatives
+    };
 }
 
 export {constructSpanner};
