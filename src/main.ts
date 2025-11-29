@@ -112,7 +112,7 @@ function constructSpanner(polygon: Polygon, points: Point[], epsilon: number): S
     let projectionsMap: Map<Point,[Point,number]> = new Map<Point,[Point,number]>();
     // let inverseProjectionsMap: Map<Point,[Point,number]> = new Map<Point,[Point,number]>();
     // projected point -> all original points that project to it
-let inverseProjectionsMap: Map<Point, Point[]> = new Map();
+    let inverseProjectionsMap: Map<Point, Point[]> = new Map();
     let projections: Point[] = [];
     for (let i = 0; i < newPoints.length; i++) {
         let p: Point = newPoints[i];
@@ -127,7 +127,7 @@ let inverseProjectionsMap: Map<Point, Point[]> = new Map();
     }
 
     // compute s-SSPD
-    let sspd: Pair[] = computeSSPD(projections, epsilon, 3, false);
+    let sspd: Pair[] = computeSSPD(projections, epsilon, 1, false);
     console.log(`Number of s-semi-separated pairs: ${sspd.length}`);
     console.log(`Epsilon value: ${epsilon}`);
 
@@ -138,7 +138,7 @@ let inverseProjectionsMap: Map<Point, Point[]> = new Map();
         const B: Point[] = pair[1];
         let smallProj = A;
 
-        if (enclosingDiscRadius(A) > enclosingDiscRadius(B)){
+        if (enclosingDiscRadius(A) > enclosingDiscRadius(B)) {
             smallProj = B;
         }
         // p - all points whose projection is in both A and B
@@ -148,33 +148,42 @@ let inverseProjectionsMap: Map<Point, Point[]> = new Map();
         //(projection p' -> original p)
         const PA: Point[] = [];
         for (const pPrime of smallProj) {
-        const originals = inverseProjectionsMap.get(pPrime);
-        if (originals) {
-            // add ALL original points that map to the same projection
-            for (const p of originals) {
-                PA.push(p);
+            const originals = inverseProjectionsMap.get(pPrime);
+            if (originals) {
+                // add ALL original points that map to the same projection
+                for (const p of originals) {
+                    PA.push(p);
+                }
             }
         }
-    }
         // for (let j = 0; j < union.length; j++) {
         //     edges.push(new Segment(union[j], minimumGeodesic));
         // }
-    // choose representative C'(P(A)) as point closest to MED center of P(A)              
+        // choose representative C'(P(A)) as point closest to MED center of P(A)              
         if (PA.length === 0) {
             console.log("No representative can be chosen, skip this iteration");
             continue;
         }
-        const disc = minimumEnclosingDisc(PA); 
+
+        // Calculate C_l(A)
+        // const disc = minimumEnclosingDisc(PA); 
         let representative: Point = PA[0];                   
         let bestDist = Infinity;                             
         for (const p of PA) {                                
-            const d = eucl_distance(p, disc.center);         
+            // const d = eucl_distance(p, disc.center);         
+            let d_out: [Point,number] | undefined = projectionsMap.get(p);
+            if (d_out === undefined)
+                continue;
+
+            let d: number = d_out[1];
+
             if (d < bestDist) {                             
                 bestDist = d;                                
                 representative = p;                          
             }                                                
         }
-    // union = all original points whose projection lies in A ∪ B
+
+        // union = all original points whose projection lies in A ∪ B
         const union: Point[] = [];                          
         for (const pPrime of [...A, ...B]) {         
             const original = inverseProjectionsMap.get(pPrime);;
@@ -182,6 +191,7 @@ let inverseProjectionsMap: Map<Point, Point[]> = new Map();
                 union.push(...original);
             }
         }
+
         for (const p of union) {             
             edges.push(new Segment(p, representative));
         }
