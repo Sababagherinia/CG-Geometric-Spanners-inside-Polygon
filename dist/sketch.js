@@ -71,7 +71,7 @@ function draw() {
     }
     else {
         for (let i in spannerSegments) {
-            let seg = segments[i];
+            let seg = spannerSegments[i];
             strokeWeight(5);
             line(seg.src.x, seg.src.y, seg.dest.x, seg.dest.y);
         }
@@ -131,10 +131,9 @@ function getSplittingLine() {
 }
 function createSpannerWrapper() {
     let polygon = new Polygon(points);
-    let segments = constructSpanner(polygon, innerPoints, 2);
-    spannerSegments = segments;
-    console.log("Spanner length is 0");
-    spannerConstructed = true && spannerSegments.length > 0;
+    spannerSegments = constructSpanner(polygon, innerPoints, 2);
+    console.log("Spanner length is " + spannerSegments.length);
+    spannerConstructed = (true && spannerSegments.length > 0);
 }
 // function testGeodesic() {
 //   if (innerPoints.length < 2)

@@ -1,9 +1,9 @@
 import { DualTree, Point, Segment } from "./classes.js";
-import { triangulate, eucl_distance } from "./utils.js";
+import { triangulate } from "./utils.js";
 import { computeSplittingSegment, unoptimizedRotation } from "./vertical_segment.js";
 import { geodesic_distance } from "./geo_distance.js";
 import { computeSSPD } from "./sspd.js";
-import { enclosingDiscRadius, minimumEnclosingDisc } from "./enclosing_disc.js";
+import { enclosingDiscRadius } from "./enclosing_disc.js";
 function projectPointToVerticalLineGeodesic(p, xL, polygon, yMin, yMax) {
     const gr = (Math.sqrt(5) - 1) / 2; // golden ratio constant
     let a = yMin;
@@ -107,7 +107,7 @@ function constructSpanner(polygon, points, epsilon) {
         projections.push(pl);
     }
     // compute s-SSPD
-    let sspd = computeSSPD(projections, epsilon, 3, false);
+    let sspd = computeSSPD(projections, epsilon, 1, false);
     console.log(`Number of s-semi-separated pairs: ${sspd.length}`);
     console.log(`Epsilon value: ${epsilon}`);
     // form edges
@@ -142,11 +142,16 @@ function constructSpanner(polygon, points, epsilon) {
             console.log("No representative can be chosen, skip this iteration");
             continue;
         }
-        const disc = minimumEnclosingDisc(PA);
+        // Calculate C_l(A)
+        // const disc = minimumEnclosingDisc(PA); 
         let representative = PA[0];
         let bestDist = Infinity;
         for (const p of PA) {
-            const d = eucl_distance(p, disc.center);
+            // const d = eucl_distance(p, disc.center);         
+            let d_out = projectionsMap.get(p);
+            if (d_out === undefined)
+                continue;
+            let d = d_out[1];
             if (d < bestDist) {
                 bestDist = d;
                 representative = p;
