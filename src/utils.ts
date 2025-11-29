@@ -51,7 +51,13 @@ function getMin(ps: Point[]): number {
   return idx;
 }
 
-// slices [start,end] section from arr with wraparound
+/**
+ * 
+ * @param arr Array to be sliced
+ * @param start Start index
+ * @param end End Index
+ * @returns Shallow copy of the array from start to end index
+ */
 function wrapAroundSlice(arr: any[], start: number, end: number): any[] {
     if (end > start) {
         return arr.slice(start, end + 1);
@@ -203,51 +209,88 @@ function getHalfPoint(segment: Segment): Point {
   return new Point(newX, newY);
 }
 
+/**
+ * 
+ * @param polygon polygon to be split
+ * @param verticalSegment vertical segment with respect to which you will be splitting
+ * @returns two sub-polygons
+ */
+function polySplit(polygon: Polygon, verticalSegment: Segment): [Polygon,Polygon] {
 
-function splitPolygon(polygon: Polygon, verticalSegment: Segment): Polygon[] {
-    let src = verticalSegment.src;
-    let dest = verticalSegment.dest;
+  // points and segments of the polygon
+  let points: Point[] = polygon.points;
+  let segments: Segment[] = polygon.segments;
 
-    let segmentSrcIdx: number = polygon.segments.findIndex((s) => s.isOnSegment(src));
-    let segmentDestIdx: number = polygon.segments.findIndex((s) => s.isOnSegment(dest));
+  // get the indices of the src and destination point in the points array
+  let iSrc: number = points.indexOf(verticalSegment.src);
+  let iDest: number = points.indexOf(verticalSegment.dest);
+  let start: number = min(iSrc,iDest);
+  let end: number = max(iSrc,iDest);
 
-    // bring segmentDestIdx on the same side of segmentSrcIdx
-    if (polygon.points[segmentDestIdx].x < src.x && polygon.points[segmentSrcIdx].x > src.x) {
-      if (polygon.points[(segmentDestIdx+1) % polygon.size()].x > src.x)
-        segmentDestIdx++;
-      else 
-        segmentDestIdx--;
-    } else if (polygon.points[segmentDestIdx].x > src.x && polygon.points[segmentSrcIdx].x < src.x) {
-      if (polygon.points[(segmentDestIdx+1) % polygon.size()].x < src.x)
-        segmentDestIdx++;
-      else 
-        segmentDestIdx--;
+  // Case 1: segment endpoints are vertices of the polygon
+  if (iSrc !== -1 && iDest !== -1) {
+    // define points and segments of polyogn on one side
+    let pointsOne: Point[] = points.slice(start,end+1);
+    let segmentsOne: Segment[] = [...segments.slice(start,end), new Segment(points[end],points[start])];
+
+    // define points and segments of the polygon on the other side
+    let pointsRest: Point[] = [...wrapAroundSlice(points, end, start)];
+    let segmentsRest: Segment[] = [...wrapAroundSlice(segments, end, start-1), new Segment(points[start], points[end])];
+
+    // return the two sub-polygons
+    return [new Polygon(pointsOne,segmentsOne), new Polygon(pointsRest,segmentsRest)];
+  }
+
+  // Case 2: one endpoint is a vertex and the other is an intersection
+  let iVertex: number = max(iSrc, iDest);
+  let vertex: Point = points[iVertex];
+  let otherEndpoint: Point = verticalSegment.src.y == vertex.y ? verticalSegment.dest : verticalSegment.src;
+
+  const intersections: [Segment,number][] = segments.map((s) => [s, s.computeY(vertex.x)]);
+  let intersection: [Segment,number] = intersections[0];
+
+  // line goes upwards from the vertex
+  if (vertex.y < otherEndpoint.y) {
+    // find the minimum intersection
+    for (let i = 0; i < intersections.length; i++) {
+      if (intersections[i][1] < intersection[1])
+        intersection = intersections[i];
     }
-
-    let right_points: Point[] = wrapAroundSlice(polygon.points, segmentSrcIdx, segmentDestIdx);
-
-    let otherSegmentSrcIdx = 0;
-    let otherSegmentDestIdx = 0;
-    if (polygon.points[segmentDestIdx].x < src.x && polygon.points[(segmentDestIdx+1) % polygon.size()].x > src.x) {
-      otherSegmentDestIdx = segmentDestIdx + 1;
-      otherSegmentSrcIdx = segmentSrcIdx - 1;
-    } else if (polygon.points[segmentDestIdx].x < src.x && polygon.points[(segmentDestIdx+1) % polygon.size()].x > src.x) {
-      otherSegmentDestIdx = segmentDestIdx - 1;
-      otherSegmentSrcIdx = segmentSrcIdx + 1;
-    } else if (polygon.points[segmentDestIdx].x > src.x && polygon.points[(segmentDestIdx+1) % polygon.size()].x > src.x) {
-      otherSegmentDestIdx = segmentDestIdx - 1;
-      otherSegmentSrcIdx = segmentSrcIdx + 1;
-    } else if (polygon.points[segmentDestIdx].x > src.x && polygon.points[(segmentDestIdx+1) % polygon.size()].x < src.x) {
-      otherSegmentDestIdx = segmentDestIdx + 1;
-      otherSegmentSrcIdx = segmentSrcIdx - 1;
+  } else { // line goes downwards from the vertex
+    // find the maximum intersection
+    for (let i = 0; i < intersections.length; i++) {
+      if (intersections[i][1] > intersection[1])
+        intersection = intersections[i];
     }
+  }
 
-    let left_points = wrapAroundSlice(polygon.points, otherSegmentSrcIdx, otherSegmentDestIdx);
+  // create new vertex that will be on the intersection
+  let newVertex: Point = new Point(vertex.x, intersection[1]);
 
-    return [
-      new Polygon(left_points),
-      new Polygon(right_points),
-    ];
+  // which endpoint of the intersecting segment is on the left and which one is on the right of the intersection
+  let [left, right]: [Point, Point] = intersection[0].src.x < vertex.x ? [intersection[0].src, intersection[0].dest] : [intersection[0].dest, intersection[0].src];
+  let iLeft: number = points.indexOf(left);
+  let iRight: number = points.indexOf(right);
+
+  // if right has a larger index than left
+  if ((iLeft + 1) % points.length == iRight) {
+    let pointsRight = [newVertex, ...wrapAroundSlice(points, iRight, iVertex)];
+    let segmentsRight = [new Segment(newVertex, right), ...wrapAroundSlice(segments, iRight, iVertex-1), new Segment(vertex, newVertex)];
+
+    let pointsLeft = [...wrapAroundSlice(points, iVertex, iLeft), newVertex];
+    let segmentsLeft = [...wrapAroundSlice(segments, iVertex, iLeft-1), new Segment(left, newVertex), new Segment(newVertex, vertex)];
+
+    return [new Polygon(pointsLeft, segmentsLeft), new Polygon(pointsRight, segmentsRight)];
+  }
+
+  // if left has a larger index than right
+  let pointsLeft = [newVertex, ...wrapAroundSlice(points, iLeft, iVertex)];
+  let segmentsLeft = [new Segment(newVertex, left), ...wrapAroundSlice(segments, iLeft, iVertex-1), new Segment(vertex, newVertex)];
+
+  let pointsRight = [...wrapAroundSlice(points, iVertex, iRight), newVertex];
+  let segmentsRight = [...wrapAroundSlice(segments, iVertex, iRight-1), new Segment(right, newVertex), new Segment(newVertex, vertex)];
+
+  return [new Polygon(pointsLeft, segmentsLeft), new Polygon(pointsRight, segmentsRight)];
 }
 
 export {compareFn, wrapAroundSlice, getMin, pointEquality, isInsideTriangle, computeDet, binarySearch, eucl_distance, getIntersectionPoint, lessThan, manhattan_distance, triangulate, isEqualPoly, getHalfPoint, splitPolygon};
