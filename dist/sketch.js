@@ -1,23 +1,29 @@
 /// <reference types="p5/global" />
-import { DualTree, Point, Polygon, Segment } from "./classes.js";
+import { Point, Polygon, Segment } from "./classes.js";
 import { constructSpanner } from "./main.js";
-import { triangulate } from "./utils.js";
-import { computeSplittingSegment, unoptimizedRotation } from "./vertical_segment.js";
 var points = [];
 var segments = [];
 var polygonDone = false;
 var innerPoints = [];
 var button;
 var buttonSL;
+var buttonProj;
+var buttonCluster;
 var buttonSpanner;
 var splittingSegment = null;
 var trs = [];
 var spannerSegments = [];
 var spannerConstructed = false;
+var projectedPoints = [];
+var rotatedInnerPoints = [];
+var showProjections = false;
+var showClusters = false;
+var representatives = [];
+var spannerResult = null;
 function setup() {
     createCanvas(windowWidth, windowHeight);
     fill(0);
-    textSize(32);
+    textSize(16);
     button = createButton('Clear');
     button.position(30, 85);
     button.mousePressed(() => {
@@ -29,34 +35,86 @@ function setup() {
         trs = [];
         spannerSegments = [];
         spannerConstructed = false;
+        projectedPoints = [];
+        rotatedInnerPoints = [];
+        showProjections = false;
+        showClusters = false;
+        representatives = [];
+        spannerResult = null;
         clear();
     });
-    buttonSL = createButton("Split");
+    buttonSL = createButton("1.Split");
     buttonSL.position(90, 85);
     buttonSL.mousePressed(getSplittingLine);
-    buttonSpanner = createButton("Spanner");
-    buttonSpanner.position(150, 85);
+    buttonProj = createButton("2.Projection");
+    buttonProj.position(150, 85);
+    buttonProj.mousePressed(showProjectionsOnLine);
+    buttonCluster = createButton("3.Cluster");
+    buttonCluster.position(230, 85);
+    buttonCluster.mousePressed(showClustersOnScreen);
+    buttonSpanner = createButton("4.Spanner");
+    buttonSpanner.position(310, 85);
     buttonSpanner.mousePressed(createSpannerWrapper);
 }
 function draw() {
     background(220);
     text("Click points to add", 30, 50);
     if (!spannerConstructed) {
+        // Draw polygon vertices
+        fill(0);
+        stroke(0);
+        strokeWeight(5);
         for (let p of points) {
             ellipse(p.x, p.y, 10, 10);
         }
+        // Draw polygon edges
         for (let i in segments) {
             let seg = segments[i];
-            strokeWeight(5);
             line(seg.src.x, seg.src.y, seg.dest.x, seg.dest.y);
         }
+        // Draw inner points
+        fill(0, 0, 255);
+        stroke(0, 0, 255);
         for (let q of innerPoints) {
             ellipse(q.x, q.y, 5, 5);
         }
         if (splittingSegment !== null) {
             trs = [];
-            strokeWeight(5);
+            stroke(255, 0, 0);
+            strokeWeight(3);
             line(splittingSegment.src.x, splittingSegment.src.y, splittingSegment.dest.x, splittingSegment.dest.y);
+        }
+        if (showProjections && projectedPoints.length > 0) {
+            // Draw projection lines
+            stroke(150, 150, 255);
+            strokeWeight(1);
+            for (let i = 0; i < rotatedInnerPoints.length; i++) {
+                line(rotatedInnerPoints[i].x, rotatedInnerPoints[i].y, projectedPoints[i].x, projectedPoints[i].y);
+            }
+            // Draw projected points
+            fill(255, 0, 255);
+            stroke(255, 0, 255);
+            strokeWeight(6);
+            for (let proj of projectedPoints) {
+                ellipse(proj.x, proj.y, 8, 8);
+            }
+        }
+        if (showClusters && representatives.length > 0) {
+            // Show projections first
+            if (projectedPoints.length > 0) {
+                stroke(150, 150, 255);
+                strokeWeight(1);
+                for (let i = 0; i < rotatedInnerPoints.length; i++) {
+                    line(rotatedInnerPoints[i].x, rotatedInnerPoints[i].y, projectedPoints[i].x, projectedPoints[i].y);
+                }
+            }
+            // Draw representative points with distinct color
+            fill(0, 255, 0);
+            stroke(0, 200, 0);
+            strokeWeight(3);
+            for (let rep of representatives) {
+                ellipse(rep.x, rep.y, 20, 20);
+            }
         }
         if (trs.length !== 0) {
             for (let i = 0; i < trs.length; i++) {
@@ -81,7 +139,11 @@ function isMouseAround(x, y, margin) {
     return mouseX <= x + margin && mouseX >= x - margin && mouseY <= y + margin && mouseY >= y - margin;
 }
 function mousePressed() {
-    if (mouseX >= 0 && mouseX <= width && mouseY >= 0 && mouseY <= height && !isMouseAround(30, 85, 30) && !isMouseAround(90, 85, 90) && !isMouseAround(150, 85, 100)) {
+    // Check if click is not on any button
+    let onButton = isMouseAround(30, 85, 50) || isMouseAround(90, 85, 50) ||
+        isMouseAround(150, 85, 80) || isMouseAround(230, 85, 50) ||
+        isMouseAround(310, 85, 50);
+    if (mouseX >= 0 && mouseX <= width && mouseY >= 0 && mouseY <= height && !onButton) {
         if (polygonDone) {
             innerPoints.push(new Point(mouseX, mouseY));
             // testGeodesic();
@@ -104,36 +166,71 @@ function windowResized() {
     resizeCanvas(windowWidth, windowHeight);
 }
 function connectPoints(points) {
-    for (let i = 0; i <= points.length; i++) {
+    for (let i = 0; i < points.length; i++) {
         segments.push(new Segment(points[i], points[(i + 1) % points.length]));
     }
 }
 function getSplittingLine() {
-    // points.sort((p,q) => computeDet(p,points[0],q));
-    let triangles = triangulate(points);
-    trs = triangles;
-    console.log("Creating the Dual Tree...");
-    let dt = new DualTree(triangles);
-    console.log("Computing the splitting line segment...");
-    let ss = computeSplittingSegment(dt, innerPoints);
-    console.log("Done...");
-    if (ss === null) {
+    // Compute spanner result
+    let polygon = new Polygon(points);
+    spannerResult = constructSpanner(polygon, innerPoints, 2);
+    if (spannerResult.splittingSegment === null) {
         console.log("The splitting segment is null - check the code...");
         return;
     }
-    let polygon = new Polygon(points);
-    let [newSS, newPoly, newInnerPoints] = unoptimizedRotation(ss, polygon, innerPoints);
-    points = newPoly.points;
-    innerPoints = newInnerPoints;
-    splittingSegment = newSS;
+    // Update the polygon and points with rotated versions
+    points = spannerResult.rotatedPolygon.points;
+    innerPoints = spannerResult.rotatedPoints;
+    splittingSegment = spannerResult.splittingSegment;
     segments = [];
     connectPoints(points);
+    console.log("Splitting segment computed and polygon rotated");
+}
+function showProjectionsOnLine() {
+    if (splittingSegment === null) {
+        console.log("Please compute the splitting line first");
+        return;
+    }
+    // Compute once and store result
+    if (spannerResult === null) {
+        let polygon = new Polygon(points);
+        spannerResult = constructSpanner(polygon, innerPoints, 2);
+    }
+    projectedPoints = spannerResult.projections;
+    rotatedInnerPoints = spannerResult.rotatedPoints;
+    showProjections = true;
+    showClusters = false;
+    console.log("Projections computed: " + projectedPoints.length);
+}
+function showClustersOnScreen() {
+    if (innerPoints.length === 0) {
+        console.log("No points to cluster");
+        return;
+    }
+    // Compute once if not already done
+    if (spannerResult === null) {
+        let polygon = new Polygon(points);
+        spannerResult = constructSpanner(polygon, innerPoints, 2);
+    }
+    representatives = spannerResult.representativePoints;
+    projectedPoints = spannerResult.projections;
+    rotatedInnerPoints = spannerResult.rotatedPoints;
+    showProjections = false;
+    showClusters = true;
+    console.log("Representative points to display: " + representatives.length);
 }
 function createSpannerWrapper() {
-    let polygon = new Polygon(points);
-    spannerSegments = constructSpanner(polygon, innerPoints, 2);
-    console.log("Spanner length is " + spannerSegments.length);
-    spannerConstructed = (true && spannerSegments.length > 0);
+    if (innerPoints.length === 0) {
+        console.log("No points to create spanner");
+        return;
+    }
+    if (spannerResult === null) {
+        let polygon = new Polygon(points);
+        spannerResult = constructSpanner(polygon, innerPoints, 2);
+    }
+    spannerSegments = spannerResult.edges;
+    spannerConstructed = true;
+    console.log("Spanner constructed with " + spannerSegments.length + " edges");
 }
 // function testGeodesic() {
 //   if (innerPoints.length < 2)

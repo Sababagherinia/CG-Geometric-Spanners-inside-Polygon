@@ -10,9 +10,11 @@ function isSemiSeparated(A, B, s) {
     // Compute distance between centers
     const centerDist = eucl_distance(discA.center, discB.center);
     const minRadius = Math.min(discA.radius, discB.radius);
-    // if either cluster has zero radius, they cannot be semi-separated
-    if (minRadius === 0)
-        return false;
+    // Special case: if either cluster has zero radius (single point or duplicates)
+    // Consider them separated if centers are different, not separated if same point
+    if (minRadius === 0) {
+        return centerDist > 0;
+    }
     // Check s-semi-separation condition
     // Semi-separation condition: ||cA - cB|| >= s * min(rA, rB)
     // where cA, cB are disc centers and rA, rB are their radius
