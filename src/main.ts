@@ -128,6 +128,8 @@ function constructSpanner(polygon: Polygon, points: Point[], epsilon: number): S
 
     // compute s-SSPD
     let sspd: Pair[] = computeSSPD(projections, epsilon, 1, false);
+    console.log("the projections:");
+    console.log(projections);
     console.log(`Number of s-semi-separated pairs: ${sspd.length}`);
     console.log(`Epsilon value: ${epsilon}`);
 
