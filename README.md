@@ -429,4 +429,4 @@ Damjan: Vertical Line Segment Computation, s-construction and Visualization
 
 Sander: projecting points onto the vertical segment
 
-Alireze: s-SSPD
+Alireze: s-SSPD, Visualization
