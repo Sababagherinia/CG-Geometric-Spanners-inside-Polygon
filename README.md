@@ -134,9 +134,9 @@ So the authors have combined a bunch of Geometric techniques to overcome these c
 In this part of the construction the goal is to split a simple polygon, P, using a vertical line segment, l, into two sub-polygon such that each one contains at most two thirds of all the points in P. For this particular task the authors of the paper referenced the work in [7]. Here the authors prove that such a split, satisfying the above-mentioned condition, is possible, without enforcing it to be vertical. This problem will be handled later on.
 
 The authors in [7] specifically walk the dual graph of the triangulation of the polygon of interest. They prove that for any triangulation of a simple polygonal domain with $n$ points there must exist one of the following three scenarios:
-1. A diagonal that splits the polygon $P$ into two sub-polygons, $P_1$ and $P_2$, such that:
+1. A diagonal that splits the polygon $P$ into two sub-polygons, $P_1$ and $P_2$, such that:  
 $ \#\text{Points}(P_1) \le \text{Points}(P_2) \le \frac{2}{3}\text{Points}(P) $
-2. A heavy triangle $T$ such that:
+2. A heavy triangle $T$ such that:  
 $ \#\text{Points}(T) > \frac{2}{3} \cdot \#\text{Points}(P) $
 3.  A triangle $T$ that partitions $P$ into three pieces, $P_1, P_2 and P_3$, such that the number of points within each sub-polygon is less than one third of the total points in $P$.
 
