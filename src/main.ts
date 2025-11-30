@@ -93,24 +93,25 @@ function constructSpanner(polygon: Polygon, points: Point[], epsilon: number):{
     sspd: Pair[],
     rotatedPolygon: Polygon,
     rotatedPoints: Point[],
-    representativePoints: Point[]
+    representativePoints: Point[],
+    correspondences: [Point,Point][]
 } {
 
     if (epsilon < 0) {
         console.log("Epsilon cannot be less than 0...");
-        return { edges: [], splittingSegment: null, projections: [], sspd: [], rotatedPolygon: polygon, rotatedPoints: points, representativePoints: [] };
+        return { edges: [], splittingSegment: null, projections: [], sspd: [], rotatedPolygon: polygon, rotatedPoints: points, representativePoints: [], correspondences: [] };
     }
 
     let edges: Segment[] = [];
     if (polygon.points.length < 4)
-        return { edges: [], splittingSegment: null, projections: [], sspd: [], rotatedPolygon: polygon, rotatedPoints: points, representativePoints: [] };
+        return { edges: [], splittingSegment: null, projections: [], sspd: [], rotatedPolygon: polygon, rotatedPoints: points, representativePoints: [], correspondences: [] };
 
     // computing the splitting line segment
     let triangles: Point[][] = triangulate(polygon.points);
     let dt: DualTree = new DualTree(triangles);
     let ss: Segment | null = computeSplittingSegment(dt,points);
     if (ss === null)
-        return { edges: [], splittingSegment: null, projections: [], sspd: [], rotatedPolygon: polygon, rotatedPoints: points, representativePoints: [] };
+        return { edges: [], splittingSegment: null, projections: [], sspd: [], rotatedPolygon: polygon, rotatedPoints: points, representativePoints: [], correspondences: [] };
 
     // computing the rotation so that ss becomes vertical
     let [newSS, newPoly, newPoints] = unoptimizedRotation(ss, polygon, points);
@@ -122,6 +123,7 @@ function constructSpanner(polygon: Polygon, points: Point[], epsilon: number):{
     // projected point -> all original points that project to it
     let inverseProjectionsMap: Map<Point, Point[]> = new Map();
     let projections: Point[] = [];
+    let correspondences: [Point,Point][] = [];
     for (let i = 0; i < newPoints.length; i++) {
         let p: Point = newPoints[i];
         let [yMin,yMax]: [number,number] = newSS.src.y < newSS.dest.y ? [newSS.src.y, newSS.dest.y] : [newSS.dest.y, newSS.src.y];
@@ -132,6 +134,8 @@ function constructSpanner(polygon: Polygon, points: Point[], epsilon: number):{
         }
         inverseProjectionsMap.get(pl)!.push(p);
         projections.push(pl);
+        // creating array to store correspondences
+        correspondences.push([p, pl]);
     }
 
     // compute s-SSPD
@@ -221,6 +225,7 @@ function constructSpanner(polygon: Polygon, points: Point[], epsilon: number):{
         edges: edges,
         splittingSegment: newSS,
         projections: projections,
+        correspondences: correspondences,
         sspd: sspd,
         rotatedPolygon: newPoly,
         rotatedPoints: newPoints,

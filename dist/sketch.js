@@ -20,6 +20,7 @@ var showProjections = false;
 var showClusters = false;
 var representatives = [];
 var spannerResult = null;
+var correspondPoints = [];
 function setup() {
     createCanvas(windowWidth, windowHeight);
     fill(0);
@@ -41,6 +42,7 @@ function setup() {
         showClusters = false;
         representatives = [];
         spannerResult = null;
+        correspondPoints = [];
         clear();
     });
     buttonSL = createButton("1.Split");
@@ -50,10 +52,10 @@ function setup() {
     buttonProj.position(150, 85);
     buttonProj.mousePressed(showProjectionsOnLine);
     buttonCluster = createButton("3.Cluster");
-    buttonCluster.position(230, 85);
+    buttonCluster.position(250, 85);
     buttonCluster.mousePressed(showClustersOnScreen);
     buttonSpanner = createButton("4.Spanner");
-    buttonSpanner.position(310, 85);
+    buttonSpanner.position(330, 85);
     buttonSpanner.mousePressed(createSpannerWrapper);
 }
 function draw() {
@@ -88,8 +90,8 @@ function draw() {
             // Draw projection lines
             stroke(150, 150, 255);
             strokeWeight(1);
-            for (let i = 0; i < rotatedInnerPoints.length; i++) {
-                line(rotatedInnerPoints[i].x, rotatedInnerPoints[i].y, projectedPoints[i].x, projectedPoints[i].y);
+            for (let i = 0; i < correspondPoints.length; i++) {
+                line(correspondPoints[i][0].x, correspondPoints[i][0].y, correspondPoints[i][1].x, correspondPoints[i][1].y);
             }
             // Draw projected points
             fill(255, 0, 255);
@@ -200,26 +202,24 @@ function showProjectionsOnLine() {
         console.log("Please compute the splitting line first");
         return;
     }
-    // Compute once and store result
     if (spannerResult === null) {
-        let polygon = new Polygon(points);
-        spannerResult = constructSpanner(polygon, innerPoints, 2);
+        console.log("Error: spannerResult is null. Click Split button first.");
+        return;
     }
+    correspondPoints = spannerResult.correspondences;
     projectedPoints = spannerResult.projections;
     rotatedInnerPoints = spannerResult.rotatedPoints;
     showProjections = true;
     showClusters = false;
-    console.log("Projections computed: " + projectedPoints.length);
 }
 function showClustersOnScreen() {
     if (innerPoints.length === 0) {
         console.log("No points to cluster");
         return;
     }
-    // Compute once if not already done
     if (spannerResult === null) {
-        let polygon = new Polygon(points);
-        spannerResult = constructSpanner(polygon, innerPoints, 2);
+        console.log("Error: spannerResult is null. Click Split button first.");
+        return;
     }
     representatives = spannerResult.representativePoints;
     projectedPoints = spannerResult.projections;
@@ -234,8 +234,8 @@ function createSpannerWrapper() {
         return;
     }
     if (spannerResult === null) {
-        let polygon = new Polygon(points);
-        spannerResult = constructSpanner(polygon, innerPoints, 2);
+        console.log("Error: spannerResult is null. Click Split button first.");
+        return;
     }
     spannerSegments = spannerResult.edges;
     spannerConstructed = true;
