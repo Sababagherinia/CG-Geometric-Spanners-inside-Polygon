@@ -128,10 +128,19 @@ function draw() {
         }
     }
     else {
+        // Draw spanner edges
+        stroke(0, 200, 0);
+        strokeWeight(3);
         for (let i in spannerSegments) {
             let seg = spannerSegments[i];
-            strokeWeight(5);
             line(seg.src.x, seg.src.y, seg.dest.x, seg.dest.y);
+        }
+        // Draw spanner nodes
+        fill(0, 0, 255);
+        stroke(0, 0, 255);
+        strokeWeight(5);
+        for (let q of innerPoints) {
+            ellipse(q.x, q.y, 8, 8);
         }
     }
 }

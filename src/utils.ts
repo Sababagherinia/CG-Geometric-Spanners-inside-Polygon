@@ -293,4 +293,4 @@ function polySplit(polygon: Polygon, verticalSegment: Segment): [Polygon,Polygon
   return [new Polygon(pointsLeft, segmentsLeft), new Polygon(pointsRight, segmentsRight)];
 }
 
-export {compareFn, wrapAroundSlice, getMin, pointEquality, isInsideTriangle, computeDet, binarySearch, eucl_distance, getIntersectionPoint, lessThan, manhattan_distance, triangulate, isEqualPoly, getHalfPoint, splitPolygon};
+export {compareFn, wrapAroundSlice, getMin, pointEquality, isInsideTriangle, computeDet, binarySearch, eucl_distance, getIntersectionPoint, lessThan, manhattan_distance, triangulate, isEqualPoly, getHalfPoint};
