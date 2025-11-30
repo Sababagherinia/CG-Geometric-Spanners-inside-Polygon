@@ -131,46 +131,36 @@ So the authors have combined a bunch of Geometric techniques to overcome these c
 
 ## Splitting with the vertical segment $l$
 
-In this part of the construction the goal is to split a simple polygon, P, using a vertical line segment, l, into two sub-polygon such that each one contains at most two thirds of all the points in P. For this particular task the authors of the paper referenced [7]. Here the authors prove that such a split satisfying the above-mentioned condition is possible, however the line is not necessarily vertical. This problem will be handled later on.
+In this part of the construction the goal is to split a simple polygon, P, using a vertical line segment, l, into two sub-polygon such that each one contains at most two thirds of all the points in P. For this particular task the authors of the paper referenced the work in [7]. Here the authors prove that such a split, satisfying the above-mentioned condition, is possible, without enforcing it to be vertical. This problem will be handled later on.
 
-As first step of solving this problem, the simple polygon needs to be triangulated. Doing this allows us to traverse the triangles in the triangulation and handle different cases on the fly. This, first and foremost, requires which cases we should pay attention to during traversal. In this section, we will describe how traversal is performed, which cases are handled and how they are handled.
+The authors in [7] specifically walk the dual graph of the triangulation of the polygon of interest. They prove that for any triangulation of a simple polygonal domain with $n$ points there must exist one of the following three scenarios:
+1. A diagonal that splits the polygon $P$ into two sub-polygons, $P_1$ and $P_2$, such that:
+$#Points(P_1) <= Points(P_2) <= 2/3Points(P)$.
+2.  A heavy triangle $T$ such that:
+$#Points(T) > 2/3#Points(P)$.
+3.  A triangle $T$ that partitions $P$ into three pieces, $P_1, P_2 and P_3$, such that the number of points within each sub-polygon is less than one third of the total points in $P$.
 
-### Traversal of the Triangulation
+As given subsequently in the proof for the above lemma, this is equivalent to checking for 3 conditions whenever a triangle $T$ is visited:
+1. $T$ contains a valid diagonal that splits P appropriately.
+2. $T$ is a heavy triangle.
+3. $T$ partitions P into three sub-polygons, each one having less than one third of all the points in P.
 
-Since the dual graph of the triangulation of a simple polygon forms an acyclic graph [8], the traversal is equivalent to traversal of any tree. The corresponding Dual Graph data structure used was an adjacency list encapsulated in a DualTree data structure, leveraging abstraction to define methods that would make the traversal easier.
-
-### Cases
-
-According to lemma 2 specified in [7], in such a triangulation there must exist one of the following; 
-
-1.  A diagonal that splits the polygon into two sub-polygons, P1 and P2, such that:
-#Points(P_1) <= Points(P_2) <= 2/3Points(P).
-2.  A triangle T such that:
-#Points(T) > 2/3#Points(P).
-3.  A triangle T that partitions P into three pieces with each piece having less than one third of all the points in P.
-
-As shown in the author’s proof this is equivalent to checking for 3 conditions whenever a triangle T is visited:
-
-1. T contains a valid diagonal that splits P appropriately.
-2. T is a heavy triangle.
-3. T partitions P into three sub-polygons, each one having less than one third of all the points in P.
+Without going into proofs and assuming correctness of the author's lemmas, it can be easily shown that each case can be handled to produce a valid splitting segment.
 
 **Case 1**
-
-Handling the first condition is simple. You only have to check whether the number of points you have already traversed in your dual graph is greater than or equal to one third of all the points in P. If yes, then simply set the diagonal of that triangle as the splitting diagonal and return it.
+Handling triangles containg valid diagonals is simple. You only have to check whether the number of points you have already traversed in your dual graph is greater than or equal to one third of all the points in $P$. If yes, then this automatically implies that your other half must have less than or equal to two thirds of all the points in the polygon. Consequently, one can simply set the diagonal of that triangle as the splitting diagonal and return it.
 
 **Case 2**
-
-In the second case, since there are more than two thirds of all the points in the triangle then all that needs to be done is to draw a line such that one side contains more or equal to one third of all the points in the triangle. This can easily be done using prune and search or by sorting the points inside the triangle radially with respect to one of the vertices and then drawing a segment past one third of all the points.
+Handling heavy triangles simply involves finding a segment within that triangle which splits the number of points into half and half. Consequently, by construction, each sub-polygon is guranteed to have at least one third of all the points in $P$. Implementing this can easily be done by sorting the points inside the triangle radially with respect to one of the vertices and then drawing a segment past one half of all the points.
 
 **Case 3**
+Finally, handling three-splitter triangles, as described in case 3, requires computing the number of points within each of the three sub-polygon. All that needs to be done now is to draw a segment through the current triangle such that one of the sub-polygons, together with this new piece of the triangle, contains one third of all the points in P. This segment is then extended until it intersects with the boundary of the polygon.
 
-When a triangle that satisfies the third condition is reached, the number of points within each sub-polygon is calculated. All that needs to be done now is to draw a segment within the current triangle such that one of the sub-polygons, together with this piece of the triangle contain one third of all the points in P. This segment is then extended until it intersects with the boundary of the polygon. Finally, the extended segment is final.
+### Implementation Details
+Triangulation of the polygon was implemented using the ear-clipping method, and the dual graph data structure is an adjacency matrix. To facilitate the traversal of the adjacency matrix as a tree, data abstraction was leveraged by encapsulating the adjacency matrix within a class providing necessary methods for the algorithm. There was no need to handle potential loops in the traversal code since by [8] the dual graph of a triangulation of a simple polygon is acyclic.
 
 ### Vertical-izing the Segment
-
-To make the obtained splitting segment vertical, as required in the paper, we make use of simple trigonometry to find an orientation matrix. Each point of the polygon alongside with the points within it are multiplied by the rotation matrix and returned. 
-Please note that creating the splitting segment (achieved explicitly using the button “Split”), may cause the polygon to get displaced far outside the canvas due to displacement caused by orientation around a non-centroid origin. It is advisable to experiment and play around with smaller polygons such that the displacement is not too large and the effects can be observed.
+To make the obtained splitting segment vertical, as required in the paper, we make use of simple trigonometry to find the orientation matrix. Each point of the polygon alongside with the points within it are multiplied by the rotation matrix and returned.
 
 ## Projecting points onto the vertical segment $l$
 
