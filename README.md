@@ -135,10 +135,10 @@ In this part of the construction the goal is to split a simple polygon, P, using
 
 The authors in [7] specifically walk the dual graph of the triangulation of the polygon of interest. They prove that for any triangulation of a simple polygonal domain with $n$ points there must exist one of the following three scenarios:
 1. A diagonal that splits the polygon $P$ into two sub-polygons, $P_1$ and $P_2$, such that:
-$\#Points(P_1) <= Points(P_2) <= 2/3Points(P)$
-3.  A heavy triangle $T$ such that:
-$\#Points(T) > 2/3 * \#Points(P)$.
-4.  A triangle $T$ that partitions $P$ into three pieces, $P_1, P_2 and P_3$, such that the number of points within each sub-polygon is less than one third of the total points in $P$.
+$ \#\text{Points}(P_1) \le \text{Points}(P_2) \le \frac{2}{3}\text{Points}(P) $
+2. A heavy triangle $T$ such that:
+$ \#\text{Points}(T) > \frac{2}{3} \cdot \#\text{Points}(P) $
+3.  A triangle $T$ that partitions $P$ into three pieces, $P_1, P_2 and P_3$, such that the number of points within each sub-polygon is less than one third of the total points in $P$.
 
 As given subsequently in the proof for the above lemma, this is equivalent to checking for 3 conditions whenever a triangle $T$ is visited:
 1. $T$ contains a valid diagonal that splits P appropriately.
