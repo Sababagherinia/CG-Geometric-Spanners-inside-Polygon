@@ -35,43 +35,43 @@ function projectPointToVerticalLineGeodesic(p, xL, polygon, yMin, yMax) {
     const yStar = (a + b) / 2;
     return [new Point(xL, yStar), finalGeodesic];
 }
-function projectionIn(A, inverseProjectionsMap) {
-    let projectionsOf = [];
-    for (let i = 0; i < A.length; i++) {
-        let pl = A[i];
-        let p = inverseProjectionsMap.get(pl);
-        if (p === undefined)
-            continue;
-        projectionsOf.push(p[0]);
-    }
-    return projectionsOf;
-}
-function smallestGeodesicDistance(points, projectionsMap) {
-    let minDist = Number.MAX_VALUE;
-    let minIdx = 0;
-    for (let i = 0; i < points.length; i++) {
-        let p = points[i];
-        let pl = projectionsMap.get(p);
-        if (pl === undefined)
-            continue;
-        if (pl[1] < minDist) {
-            minDist = pl[1];
-            minIdx = i;
-        }
-    }
-    return points[minIdx];
-}
-function unionOfProjections(inverseProjectionMap, A, B) {
-    let union = [];
-    let pls = A.concat(B);
-    for (let i = 0; i < pls.length; i++) {
-        let p = inverseProjectionMap.get(pls[i]);
-        if (p === undefined)
-            continue;
-        union.push(p[0]);
-    }
-    return union;
-}
+// function projectionIn(A: Point[], inverseProjectionsMap: Map<Point,[Point,number]>): Point[] {
+//     let projectionsOf: Point[] = [];
+//     for (let i = 0; i < A.length; i++) {
+//         let pl: Point = A[i];
+//         let p: [Point,number] | undefined = inverseProjectionsMap.get(pl);
+//         if (p === undefined)
+//             continue;
+//         projectionsOf.push(p[0])
+//     }
+//     return projectionsOf;
+// }
+// function smallestGeodesicDistance(points: Point[], projectionsMap: Map<Point,[Point,number]>): Point {
+//     let minDist = Number.MAX_VALUE;
+//     let minIdx = 0;
+//     for (let i = 0; i < points.length; i++) {
+//         let p: Point = points[i];
+//         let pl: [Point,number] | undefined = projectionsMap.get(p);
+//         if (pl === undefined)
+//             continue;
+//         if (pl[1] < minDist) {
+//             minDist = pl[1];
+//             minIdx = i;
+//         }
+//     }
+//     return points[minIdx];
+// }
+// function unionOfProjections(inverseProjectionMap: Map<Point,[Point,number]>, A: Point[], B: Point[]): Point[] {
+//     let union: Point[] = [];
+//     let pls = A.concat(B);
+//     for (let i = 0; i < pls.length; i++) {
+//         let p: [Point,number] | undefined = inverseProjectionMap.get(pls[i]);
+//         if (p === undefined)
+//             continue;
+//         union.push(p[0]);
+//     }
+//     return union;
+// }
 function constructSpanner(polygon, points, epsilon) {
     if (epsilon < 0) {
         console.log("Epsilon cannot be less than 0...");

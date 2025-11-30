@@ -41,50 +41,50 @@ function projectPointToVerticalLineGeodesic(p: Point, xL: number, polygon: Polyg
     return [new Point(xL, yStar),finalGeodesic];
 }
 
-function projectionIn(A: Point[], inverseProjectionsMap: Map<Point,[Point,number]>): Point[] {
-    let projectionsOf: Point[] = [];
-    for (let i = 0; i < A.length; i++) {
-        let pl: Point = A[i];
-        let p: [Point,number] | undefined = inverseProjectionsMap.get(pl);
-        if (p === undefined)
-            continue;
-        projectionsOf.push(p[0])
-    }
+// function projectionIn(A: Point[], inverseProjectionsMap: Map<Point,[Point,number]>): Point[] {
+//     let projectionsOf: Point[] = [];
+//     for (let i = 0; i < A.length; i++) {
+//         let pl: Point = A[i];
+//         let p: [Point,number] | undefined = inverseProjectionsMap.get(pl);
+//         if (p === undefined)
+//             continue;
+//         projectionsOf.push(p[0])
+//     }
 
-    return projectionsOf;
-}
+//     return projectionsOf;
+// }
 
-function smallestGeodesicDistance(points: Point[], projectionsMap: Map<Point,[Point,number]>): Point {
-    let minDist = Number.MAX_VALUE;
-    let minIdx = 0;
-    for (let i = 0; i < points.length; i++) {
-        let p: Point = points[i];
-        let pl: [Point,number] | undefined = projectionsMap.get(p);
-        if (pl === undefined)
-            continue;
+// function smallestGeodesicDistance(points: Point[], projectionsMap: Map<Point,[Point,number]>): Point {
+//     let minDist = Number.MAX_VALUE;
+//     let minIdx = 0;
+//     for (let i = 0; i < points.length; i++) {
+//         let p: Point = points[i];
+//         let pl: [Point,number] | undefined = projectionsMap.get(p);
+//         if (pl === undefined)
+//             continue;
 
-        if (pl[1] < minDist) {
-            minDist = pl[1];
-            minIdx = i;
-        }
-    }
+//         if (pl[1] < minDist) {
+//             minDist = pl[1];
+//             minIdx = i;
+//         }
+//     }
 
-    return points[minIdx];
-}
+//     return points[minIdx];
+// }
 
-function unionOfProjections(inverseProjectionMap: Map<Point,[Point,number]>, A: Point[], B: Point[]): Point[] {
-    let union: Point[] = [];
-    let pls = A.concat(B);
-    for (let i = 0; i < pls.length; i++) {
-        let p: [Point,number] | undefined = inverseProjectionMap.get(pls[i]);
-        if (p === undefined)
-            continue;
+// function unionOfProjections(inverseProjectionMap: Map<Point,[Point,number]>, A: Point[], B: Point[]): Point[] {
+//     let union: Point[] = [];
+//     let pls = A.concat(B);
+//     for (let i = 0; i < pls.length; i++) {
+//         let p: [Point,number] | undefined = inverseProjectionMap.get(pls[i]);
+//         if (p === undefined)
+//             continue;
 
-        union.push(p[0]);
-    }
+//         union.push(p[0]);
+//     }
 
-    return union;
-}
+//     return union;
+// }
 
 function constructSpanner(polygon: Polygon, points: Point[], epsilon: number):{
     edges: Segment[],
