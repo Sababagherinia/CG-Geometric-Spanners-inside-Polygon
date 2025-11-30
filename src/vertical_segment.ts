@@ -180,6 +180,9 @@ function computeSplittingSegment(dt: DualTree, points: Point[]): Segment | null 
       let min = intersections[0];
       let max = intersections[0];
       for (let p of intersections) {
+        if (p.y === Infinity)
+          continue;
+
         if (p.y < min.y) {
           min = p;
           continue;
