@@ -150,14 +150,22 @@ Without going into proofs and assuming correctness of the author's lemmas, it ca
 **Case 1**
 Handling triangles containg valid diagonals is simple. You only have to check whether the number of points you have already traversed in your dual graph is greater than or equal to one third of all the points in $P$. If yes, then this automatically implies that your other half must have less than or equal to two thirds of all the points in the polygon. Consequently, one can simply set the diagonal of that triangle as the splitting diagonal and return it.
 
+![Triangle with a valid diagonal](valid_diagonal.png "Triangle with a valid diagonal")
+
 **Case 2**
 Handling heavy triangles simply involves finding a segment within that triangle which splits the number of points into half and half. Consequently, by construction, each sub-polygon is guranteed to have at least one third of all the points in $P$. Implementing this can easily be done by sorting the points inside the triangle radially with respect to one of the vertices and then drawing a segment past one half of all the points.
+
+![Heavy triangle](heavy.png "Heavy Triangle")
 
 **Case 3**
 Finally, handling three-splitter triangles, as described in case 3, requires computing the number of points within each of the three sub-polygon. All that needs to be done now is to draw a segment through the current triangle such that one of the sub-polygons, together with this new piece of the triangle, contains one third of all the points in P. This segment is then extended until it intersects with the boundary of the polygon.
 
+![Three Pieces](three_pieces.png "Case when a triangle splits the polygon in three pieces")
+
 ### Implementation Details
 Triangulation of the polygon was implemented using the ear-clipping method, and the dual graph data structure is an adjacency matrix. To facilitate the traversal of the adjacency matrix as a tree, data abstraction was leveraged by encapsulating the adjacency matrix within a class providing necessary methods for the algorithm. There was no need to handle potential loops in the traversal code since by [8] the dual graph of a triangulation of a simple polygon is acyclic.
+
+![Dual Graph of a Triangulation](dual_graph.png "Dual Graph of a Triangulation")
 
 ### Vertical-izing the Segment
 To make the obtained splitting segment vertical, as required in the paper, we make use of simple trigonometry to find the orientation matrix. Each point of the polygon alongside with the points within it are multiplied by the rotation matrix and returned.
