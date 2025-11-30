@@ -21,7 +21,9 @@ class Segment {
         return lineY === p.y;
     }
     computeY(x) {
-        return this.slope * x + this.intercept;
+        if ((x >= this.src.x && x <= this.dest.x) || (x >= this.dest.x && x <= this.src.x))
+            return this.slope * x + this.intercept;
+        return Infinity;
     }
 }
 class Graph {
