@@ -168,7 +168,30 @@ function computeSplittingSegment(dt: DualTree, points: Point[]): Segment | null 
     // Condition 2 - heavy triangle case
     if (weight > 2/3*points.length) {
       let x: number = findCenterX(innerPoints);
-      return new Segment(new Point(x,-999), new Point(x,999));
+      let vert: Segment = new Segment(new Point(x,-999), new Point(x,999));
+
+      let intersections: Point[] = [];
+      for (let poly of dt.polygons) {
+        for (let seg of poly.segments) {
+          intersections.push(getIntersectionPoint(seg,vert));
+        }
+      }
+
+      let min = intersections[0];
+      let max = intersections[0];
+      for (let p of intersections) {
+        if (p.y < min.y) {
+          min = p;
+          continue;
+        }
+
+        if (p.y > min.y) {
+          max = p;
+          continue;
+        }
+      }
+
+      return new Segment(min, max);
     }
 
     previous = current;
