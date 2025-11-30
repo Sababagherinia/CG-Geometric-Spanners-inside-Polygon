@@ -41,50 +41,50 @@ function projectPointToVerticalLineGeodesic(p: Point, xL: number, polygon: Polyg
     return [new Point(xL, yStar),finalGeodesic];
 }
 
-// function projectionIn(A: Point[], inverseProjectionsMap: Map<Point,[Point,number]>): Point[] {
-//     let projectionsOf: Point[] = [];
-//     for (let i = 0; i < A.length; i++) {
-//         let pl: Point = A[i];
-//         let p: [Point,number] | undefined = inverseProjectionsMap.get(pl);
-//         if (p === undefined)
-//             continue;
-//         projectionsOf.push(p[0])
-//     }
+function projectionIn(A: Point[], inverseProjectionsMap: Map<Point,[Point,number]>): Point[] {
+    let projectionsOf: Point[] = [];
+    for (let i = 0; i < A.length; i++) {
+        let pl: Point = A[i];
+        let p: [Point,number] | undefined = inverseProjectionsMap.get(pl);
+        if (p === undefined)
+            continue;
+        projectionsOf.push(p[0])
+    }
 
-//     return projectionsOf;
-// }
+    return projectionsOf;
+}
 
-// function smallestGeodesicDistance(points: Point[], projectionsMap: Map<Point,[Point,number]>): Point {
-//     let minDist = Number.MAX_VALUE;
-//     let minIdx = 0;
-//     for (let i = 0; i < points.length; i++) {
-//         let p: Point = points[i];
-//         let pl: [Point,number] | undefined = projectionsMap.get(p);
-//         if (pl === undefined)
-//             continue;
+function smallestGeodesicDistance(points: Point[], projectionsMap: Map<Point,[Point,number]>): Point {
+    let minDist = Number.MAX_VALUE;
+    let minIdx = 0;
+    for (let i = 0; i < points.length; i++) {
+        let p: Point = points[i];
+        let pl: [Point,number] | undefined = projectionsMap.get(p);
+        if (pl === undefined)
+            continue;
 
-//         if (pl[1] < minDist) {
-//             minDist = pl[1];
-//             minIdx = i;
-//         }
-//     }
+        if (pl[1] < minDist) {
+            minDist = pl[1];
+            minIdx = i;
+        }
+    }
 
-//     return points[minIdx];
-// }
+    return points[minIdx];
+}
 
-// function unionOfProjections(inverseProjectionMap: Map<Point,[Point,number]>, A: Point[], B: Point[]): Point[] {
-//     let union: Point[] = [];
-//     let pls = A.concat(B);
-//     for (let i = 0; i < pls.length; i++) {
-//         let p: [Point,number] | undefined = inverseProjectionMap.get(pls[i]);
-//         if (p === undefined)
-//             continue;
+function unionOfProjections(inverseProjectionMap: Map<Point,[Point,number]>, A: Point[], B: Point[]): Point[] {
+    let union: Point[] = [];
+    let pls = A.concat(B);
+    for (let i = 0; i < pls.length; i++) {
+        let p: [Point,number] | undefined = inverseProjectionMap.get(pls[i]);
+        if (p === undefined)
+            continue;
 
-//         union.push(p[0]);
-//     }
+        union.push(p[0]);
+    }
 
-//     return union;
-// }
+    return union;
+}
 
 function constructSpanner(polygon: Polygon, points: Point[], epsilon: number):{
     edges: Segment[],
@@ -93,24 +93,25 @@ function constructSpanner(polygon: Polygon, points: Point[], epsilon: number):{
     sspd: Pair[],
     rotatedPolygon: Polygon,
     rotatedPoints: Point[],
-    representativePoints: Point[]
+    representativePoints: Point[],
+    correspondences: [Point,Point][]
 } {
 
     if (epsilon < 0) {
         console.log("Epsilon cannot be less than 0...");
-        return { edges: [], splittingSegment: null, projections: [], sspd: [], rotatedPolygon: polygon, rotatedPoints: points, representativePoints: [] };
+        return { edges: [], splittingSegment: null, projections: [], sspd: [], rotatedPolygon: polygon, rotatedPoints: points, representativePoints: [], correspondences: [] };
     }
 
     let edges: Segment[] = [];
     if (polygon.points.length < 4)
-        return { edges: [], splittingSegment: null, projections: [], sspd: [], rotatedPolygon: polygon, rotatedPoints: points, representativePoints: [] };
+        return { edges: [], splittingSegment: null, projections: [], sspd: [], rotatedPolygon: polygon, rotatedPoints: points, representativePoints: [], correspondences: [] };
 
     // computing the splitting line segment
     let triangles: Point[][] = triangulate(polygon.points);
     let dt: DualTree = new DualTree(triangles);
     let ss: Segment | null = computeSplittingSegment(dt,points);
     if (ss === null)
-        return { edges: [], splittingSegment: null, projections: [], sspd: [], rotatedPolygon: polygon, rotatedPoints: points, representativePoints: [] };
+        return { edges: [], splittingSegment: null, projections: [], sspd: [], rotatedPolygon: polygon, rotatedPoints: points, representativePoints: [], correspondences: [] };
 
     // computing the rotation so that ss becomes vertical
     let [newSS, newPoly, newPoints] = unoptimizedRotation(ss, polygon, points);
@@ -122,6 +123,7 @@ function constructSpanner(polygon: Polygon, points: Point[], epsilon: number):{
     // projected point -> all original points that project to it
     let inverseProjectionsMap: Map<Point, Point[]> = new Map();
     let projections: Point[] = [];
+    let correspondences: [Point,Point][] = [];
     for (let i = 0; i < newPoints.length; i++) {
         let p: Point = newPoints[i];
         let [yMin,yMax]: [number,number] = newSS.src.y < newSS.dest.y ? [newSS.src.y, newSS.dest.y] : [newSS.dest.y, newSS.src.y];
@@ -132,6 +134,8 @@ function constructSpanner(polygon: Polygon, points: Point[], epsilon: number):{
         }
         inverseProjectionsMap.get(pl)!.push(p);
         projections.push(pl);
+        // creating array to store correspondences
+        correspondences.push([p, pl]);
     }
 
     // compute s-SSPD
@@ -221,6 +225,7 @@ function constructSpanner(polygon: Polygon, points: Point[], epsilon: number):{
         edges: edges,
         splittingSegment: newSS,
         projections: projections,
+        correspondences: correspondences,
         sspd: sspd,
         rotatedPolygon: newPoly,
         rotatedPoints: newPoints,

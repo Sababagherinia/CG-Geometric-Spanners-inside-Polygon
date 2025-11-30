@@ -203,35 +203,41 @@ function computeSplittingSegment(dt: DualTree, points: Point[]): Segment | null 
 //   return pointLocations;
 // }
 
+function rotatePoint(point: Point, theta: number, origin: Point) {
+  // translatied Point
+  let diffX: number = point.x - origin.x;
+  let diffY: number = point.y - origin.y;
+
+  // rotated translated point around the origin
+  let rotDiffX: number = (cos(theta) * diffX) - (sin(theta) * diffY);
+  let rotDiffY: number = (cos(theta) * diffY) + (sin(theta) * diffX);
+  
+  // translate back
+  return new Point(origin.x + rotDiffX, origin.y + rotDiffY);
+}
+
 function unoptimizedRotation(splittingSegment: Segment, polygon: Polygon, points: Point[]): [Segment, Polygon, Point[]] {
-  const theta = Math.atan2(splittingSegment.dest.y - splittingSegment.src.y, splittingSegment.dest.x - splittingSegment.src.x);
+  // computing the centroid of the polygon
+  let sumX: number = 0;
+  let sumY: number = 0;
+  for (let i = 0; i < polygon.points.length; i++) {
+    sumX += polygon.points[i].x;
+    sumY += polygon.points[i].y;
+  }
+  let pointOfRotation: Point = new Point(sumX/polygon.points.length, sumY/polygon.points.length);
 
-  const M = {
-        x: (splittingSegment.src.x + splittingSegment.dest.x) / 2,
-        y: (splittingSegment.src.y + splittingSegment.dest.y) / 2
-    };
+  // angle of rotation
+  let height: number = splittingSegment.dest.y - splittingSegment.src.y;
+  let width: number = splittingSegment.dest.x - splittingSegment.src.x;
+  let theta: number = PI/2 - atan(height/width);
 
-  const alpha = Math.PI / 2 - theta;
-  const cosA = Math.cos(alpha);
-  const sinA = Math.sin(alpha);
+  // rotating the points
+  let rotPolyPoints: Point[] = polygon.points.map((p) => rotatePoint(p,theta,pointOfRotation));
+  let rotPolygon: Polygon = new Polygon(rotPolyPoints);
+  let rotInnerPoints: Point[] = points.map((p) => rotatePoint(p,theta,pointOfRotation));
+  let rotSegment: Segment = new Segment(rotatePoint(splittingSegment.src, theta, pointOfRotation), rotatePoint(splittingSegment.dest, theta, pointOfRotation));
 
-  const rotatePoint = (P: Point) => {
-        const dx = P.x - M.x;
-        const dy = P.y - M.y;
-
-        return {
-            x: M.x + dx * cosA - dy * sinA,
-            y: M.x + dx * sinA + dy * cosA
-        };
-  };
-
-  let newSS: Segment = new Segment(rotatePoint(splittingSegment.src), rotatePoint(splittingSegment.dest));
-  let newPolyPoints: Point[] =  polygon.points.map(rotatePoint);
-  let newPolySegments: Segment[] = polygon.segments.map((s) => new Segment(rotatePoint(s.src), rotatePoint(s.dest)));
-  let newPolygon: Polygon = new Polygon(newPolyPoints, newPolySegments);
-  let newPoints: Point[] = points.map(rotatePoint);
-
-  return [newSS, newPolygon, newPoints];
+  return [rotSegment, rotPolygon, rotInnerPoints];
 }
 
 /**
