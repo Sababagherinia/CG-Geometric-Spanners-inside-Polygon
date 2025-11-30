@@ -1,5 +1,5 @@
 import { Point, Polygon, Segment, DualTree} from "./classes.js";
-import {isInsideTriangle, compareFn, computeDet, triangulate} from "./utils.js";
+import {isInsideTriangle, compareFn, computeDet, triangulate, getIntersectionPoint} from "./utils.js";
 
 function isEqual(p: Point, q: Point): Boolean {
   return p.x == q.x && p.y == q.y;
@@ -107,7 +107,7 @@ function computeSplittingSegment(dt: DualTree, points: Point[]): Segment | null 
       if (next2InnerPoints.length >= points.length/3 && next2InnerPoints.length <= 2/3*points.length)
         return segs[1];
 
-      //TODO - if a subpolygon has >2/3 of all the points that you have to process it
+      // if a subpolygon has >2/3 of all the points that you have to process it
       if (next1InnerPoints.length > 2/3*points.length) {
         previous = current;
         current = next1;
@@ -143,9 +143,17 @@ function computeSplittingSegment(dt: DualTree, points: Point[]): Segment | null 
       let middleX: number = (innerPointsWithVertices[toThird].x + 0.001);
       let middleY: number = (innerPointsWithVertices[toThird].y + 0.001);
       let segment: Segment = new Segment(commonPoint, new Point(middleX,middleY));
-      let longY: number = segment.computeY(-999);
+      let intersection: Point = segment.dest;
+      for (let poly of dt.polygons) {
+        for (let seg of poly.segments) {
+          intersection = getIntersectionPoint(segment,seg);
+          if (intersection.y !== Infinity)
+            break;
+        }
+      }
+
       // let intersectionPoint: Point = getIntersectionPoint(oppositeSegment,segment);
-      return new Segment(commonPoint, new Point(-999,longY));
+      return new Segment(commonPoint, intersection);
     }
 
     // Condition 1 - Valid Diagonal Case
