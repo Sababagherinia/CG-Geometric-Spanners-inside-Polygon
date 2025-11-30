@@ -294,4 +294,3 @@ function createSpannerWrapper() {
 (window as any).draw = draw;
 (window as any).mousePressed = mousePressed;
 (window as any).windowResized = windowResized;
-
