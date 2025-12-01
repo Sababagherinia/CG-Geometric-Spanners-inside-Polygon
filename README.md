@@ -401,6 +401,23 @@ Together, these results give a clearer picture of the options for designing geod
 
 # Conclusion
 
+Constructed vertical split:  
+
+![Computed Vertical Split](split.png "Computed vertical split")  
+
+Computed geodesic projections:
+
+![Computed Projections](projections.png "Computed projections")  
+
+Computed clusters:
+
+![Computed Clusters](clusters.png "Computed clusters")  
+
+Final Spanner:
+
+![Computed spanner](spanner.png "Computed spanner")  
+
+
 # References
 
 [1] Mohammad Ali Abam, Marjan Adeli, Hamid Homapour, and Pooya Zafar Asadollahpoor. *Geometric Spanners for Points Inside a Polygonal Domain*. **SoCG 2015**, LIPIcs, pp. 186–197.
