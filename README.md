@@ -359,7 +359,7 @@ The s-SSPD construction works as follows:
     - Check the separation condition
 4. **If separated → record pair**
 5. **Else → recurse on the inside of both clusters**
-6. Stop recursion when cluster size ≤ 3 (smallest meaningful disc)
+6. Stop recursion when cluster size ≤ 1 (smallest meaningful disc)
 
 This implementation mirrors the restricted 1D version of the CK algorithm used by the paper. 
 
